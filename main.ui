@@ -6,15 +6,17 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1619</width>
-    <height>951</height>
+    <width>1952</width>
+    <height>1141</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">background-color: rgb(213, 182, 237);</string>
+   <string notr="true">
+background-color: #DCD6DC;
+</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QCalendarWidget" name="calendar">
@@ -28,7 +30,7 @@
     </property>
     <property name="styleSheet">
      <string notr="true">font: 12pt &quot;News Cycle&quot;;
-selection-background-color: rgb(182, 114, 234);</string>
+selection-background-color: #99AAD2;</string>
     </property>
     <property name="verticalHeaderFormat">
      <enum>QCalendarWidget::NoVerticalHeader</enum>
@@ -63,7 +65,7 @@ selection-background-color: rgb(182, 114, 234);</string>
      <string notr="true">QPushButton{
 border: none;
 border-radius: 25px;
-background-color: #B672EA;
+background-color: #99AAD2;
 }
 </string>
     </property>
@@ -93,7 +95,7 @@ background-color: #B672EA;
      <string notr="true">QPushButton:hover{
 border: none;
 border-radius: 25px;
-background-color: #B672EA;
+background-color: #99AAD2;
 }</string>
     </property>
     <property name="text">
@@ -122,7 +124,7 @@ background-color: #B672EA;
      <string notr="true">QPushButton:hover{
 border: none;
 border-radius: 25px;
-background-color: #B672EA;
+background-color: #99AAD2;
 }</string>
     </property>
     <property name="text">
@@ -151,7 +153,7 @@ background-color: #B672EA;
      <string notr="true">QPushButton:hover{
 border: none;
 border-radius: 25px;
-background-color: #B672EA;
+background-color: #99AAD2;
 }</string>
     </property>
     <property name="text">
@@ -180,7 +182,7 @@ background-color: #B672EA;
      <string notr="true">QPushButton:hover{
 border: none;
 border-radius: 25px;
-background-color: #B672EA;
+background-color: #99AAD2;
 }</string>
     </property>
     <property name="text">
@@ -191,39 +193,13 @@ background-color: #B672EA;
     <property name="geometry">
      <rect>
       <x>410</x>
-      <y>40</y>
+      <y>60</y>
       <width>1571</width>
       <height>16</height>
      </rect>
     </property>
     <property name="orientation">
      <enum>Qt::Horizontal</enum>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pushButton">
-    <property name="geometry">
-     <rect>
-      <x>420</x>
-      <y>10</y>
-      <width>111</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>PushButton</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pushButton_2">
-    <property name="geometry">
-     <rect>
-      <x>1770</x>
-      <y>10</y>
-      <width>111</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>PushButton</string>
     </property>
    </widget>
    <widget class="QPushButton" name="addBtn">
@@ -246,12 +222,12 @@ background-color: #B672EA;
     </property>
     <property name="styleSheet">
      <string notr="true">QPushButton{
-border-radius: 15px;
-background-color: #B672EA;
+border-radius: 20px;
+background-color: #AAB1C1;
 }</string>
     </property>
     <property name="text">
-     <string>+ Добавить</string>
+     <string>Добавить</string>
     </property>
    </widget>
    <widget class="QTextEdit" name="searchTxt">
@@ -274,8 +250,8 @@ background-color: #B672EA;
     </property>
     <property name="styleSheet">
      <string notr="true">QTextEdit{
-background-color: #B672EA;
-border-radius: 15px;
+background-color: #AAB1C1;
+border-radius: 20px;
 }</string>
     </property>
     <property name="html">
@@ -286,41 +262,13 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="placeholderText">
-     <string>🔍  Поиск...</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="editBtn">
-    <property name="geometry">
-     <rect>
-      <x>720</x>
-      <y>90</y>
-      <width>251</width>
-      <height>61</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>News Cycle</family>
-      <pointsize>18</pointsize>
-     </font>
-    </property>
-    <property name="cursor">
-     <cursorShape>OpenHandCursor</cursorShape>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QPushButton{
-border-radius: 15px;
-background-color: #B672EA;
-}</string>
-    </property>
-    <property name="text">
-     <string>✎ Редактировать</string>
+     <string>    Поиск...</string>
     </property>
    </widget>
    <widget class="QPushButton" name="delBtn">
     <property name="geometry">
      <rect>
-      <x>1000</x>
+      <x>750</x>
       <y>90</y>
       <width>241</width>
       <height>61</height>
@@ -337,23 +285,103 @@ background-color: #B672EA;
     </property>
     <property name="styleSheet">
      <string notr="true">QPushButton{
-border-radius: 15px;
-background-color: #B672EA;
+border-radius: 20px;
+background-color: #AAB1C1;
 }
 </string>
     </property>
     <property name="text">
-     <string>🗑 Удалить</string>
+     <string>Удалить</string>
     </property>
    </widget>
-   <widget class="QTableView" name="tableView">
+   <widget class="QTableView" name="tableViewNote">
     <property name="geometry">
      <rect>
-      <x>440</x>
-      <y>190</y>
+      <x>460</x>
+      <y>180</y>
       <width>1431</width>
-      <height>761</height>
+      <height>841</height>
      </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QTableView {
+border-color: #B672EA
+}</string>
+    </property>
+    <property name="gridStyle">
+     <enum>Qt::CustomDashLine</enum>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="period">
+    <property name="geometry">
+     <rect>
+      <x>1660</x>
+      <y>10</y>
+      <width>181</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>News Cycle</family>
+      <pointsize>14</pointsize>
+     </font>
+    </property>
+    <property name="currentIndex">
+     <number>-1</number>
+    </property>
+   </widget>
+   <widget class="QLabel" name="labelDate">
+    <property name="geometry">
+     <rect>
+      <x>460</x>
+      <y>10</y>
+      <width>221</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>News Cycle</family>
+      <pointsize>14</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: #2E2E2E;
+background-color: #99AAD2;
+border-radius: 15px;
+</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QToolButton" name="hintBtn">
+    <property name="geometry">
+     <rect>
+      <x>1050</x>
+      <y>90</y>
+      <width>61</width>
+      <height>61</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>News Cycle</family>
+      <pointsize>14</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QToolButton{
+border-radius: 30px;
+background-color: #AAB1C1;
+}</string>
+    </property>
+    <property name="text">
+     <string>?</string>
     </property>
    </widget>
   </widget>
