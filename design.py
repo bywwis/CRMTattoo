@@ -47,19 +47,19 @@ class Ui_MainWindow(object):
 "}\n"
 "")
         self.recordsBtn.setObjectName("recordsBtn")
-        self.clienBtn = QtWidgets.QPushButton(self.centralwidget)
-        self.clienBtn.setGeometry(QtCore.QRect(0, 420, 401, 71))
+        self.clientBtn = QtWidgets.QPushButton(self.centralwidget)
+        self.clientBtn.setGeometry(QtCore.QRect(0, 420, 401, 71))
         font = QtGui.QFont()
         font.setFamily("News Cycle")
         font.setPointSize(24)
-        self.clienBtn.setFont(font)
-        self.clienBtn.setCursor(QtGui.QCursor(QtCore.Qt.OpenHandCursor))
-        self.clienBtn.setStyleSheet("QPushButton:hover{\n"
+        self.clientBtn.setFont(font)
+        self.clientBtn.setCursor(QtGui.QCursor(QtCore.Qt.OpenHandCursor))
+        self.clientBtn.setStyleSheet("QPushButton:hover{\n"
 "border: none;\n"
 "border-radius: 25px;\n"
 "background-color: #99AAD2;\n"
 "}")
-        self.clienBtn.setObjectName("clienBtn")
+        self.clientBtn.setObjectName("clientBtn")
         self.consumBtn = QtWidgets.QPushButton(self.centralwidget)
         self.consumBtn.setGeometry(QtCore.QRect(0, 490, 401, 71))
         font = QtGui.QFont()
@@ -87,7 +87,7 @@ class Ui_MainWindow(object):
 "}")
         self.priceBtn.setObjectName("priceBtn")
         self.finanBtn = QtWidgets.QPushButton(self.centralwidget)
-        self.finanBtn.setGeometry(QtCore.QRect(0, 630, 401, 71))
+        self.finanBtn.setGeometry(QtCore.QRect(0, 700, 401, 71))
         font = QtGui.QFont()
         font.setFamily("News Cycle")
         font.setPointSize(24)
@@ -141,13 +141,19 @@ class Ui_MainWindow(object):
 "}\n"
 "")
         self.delBtn.setObjectName("delBtn")
-        self.tableViewNote = QtWidgets.QTableView(self.centralwidget)
-        self.tableViewNote.setGeometry(QtCore.QRect(460, 180, 1431, 841))
-        self.tableViewNote.setStyleSheet("QTableView {\n"
-"border-color: #B672EA\n"
-"}")
-        self.tableViewNote.setGridStyle(QtCore.Qt.CustomDashLine)
-        self.tableViewNote.setObjectName("tableViewNote")
+        self.tableView = QtWidgets.QTableView(self.centralwidget)
+        self.tableView.setGeometry(QtCore.QRect(460, 180, 1431, 841))
+        self.tableView.setStyleSheet("QTableView {\n"
+"        gridline-color: #99AAD2;\n"
+"        border: 10 px solid #99AAD2;\n"
+"        \n"
+"    }\n"
+"    QHeaderView::section {\n"
+"        background-color:#99AAD2;\n"
+"        padding: 0 px;\n"
+"    }")
+        self.tableView.setGridStyle(QtCore.Qt.CustomDashLine)
+        self.tableView.setObjectName("tableView")
         self.period = QtWidgets.QComboBox(self.centralwidget)
         self.period.setGeometry(QtCore.QRect(1660, 10, 181, 31))
         font = QtGui.QFont()
@@ -179,6 +185,19 @@ class Ui_MainWindow(object):
 "background-color: #AAB1C1;\n"
 "}")
         self.hintBtn.setObjectName("hintBtn")
+        self.expBtn = QtWidgets.QPushButton(self.centralwidget)
+        self.expBtn.setGeometry(QtCore.QRect(0, 630, 401, 71))
+        font = QtGui.QFont()
+        font.setFamily("News Cycle")
+        font.setPointSize(24)
+        self.expBtn.setFont(font)
+        self.expBtn.setCursor(QtGui.QCursor(QtCore.Qt.OpenHandCursor))
+        self.expBtn.setStyleSheet("QPushButton:hover{\n"
+"border: none;\n"
+"border-radius: 25px;\n"
+"background-color: #99AAD2;\n"
+"}")
+        self.expBtn.setObjectName("expBtn")
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
@@ -192,7 +211,7 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.recordsBtn.setText(_translate("MainWindow", " Записи"))
-        self.clienBtn.setText(_translate("MainWindow", "Клиенты"))
+        self.clientBtn.setText(_translate("MainWindow", "Клиенты"))
         self.consumBtn.setText(_translate("MainWindow", "Расходные материалы"))
         self.priceBtn.setText(_translate("MainWindow", "Прайс-лист"))
         self.finanBtn.setText(_translate("MainWindow", "Финансы"))
@@ -205,3 +224,4 @@ class Ui_MainWindow(object):
         self.searchTxt.setPlaceholderText(_translate("MainWindow", "    Поиск..."))
         self.delBtn.setText(_translate("MainWindow", "Удалить"))
         self.hintBtn.setText(_translate("MainWindow", "?"))
+        self.expBtn.setText(_translate("MainWindow", "Расход материалов"))

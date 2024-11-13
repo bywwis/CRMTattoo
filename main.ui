@@ -73,7 +73,7 @@ background-color: #99AAD2;
      <string> Записи</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="clienBtn">
+   <widget class="QPushButton" name="clientBtn">
     <property name="geometry">
      <rect>
       <x>0</x>
@@ -164,7 +164,7 @@ background-color: #99AAD2;
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>630</y>
+      <y>700</y>
       <width>401</width>
       <height>71</height>
      </rect>
@@ -294,7 +294,7 @@ background-color: #AAB1C1;
      <string>Удалить</string>
     </property>
    </widget>
-   <widget class="QTableView" name="tableViewNote">
+   <widget class="QTableView" name="tableView">
     <property name="geometry">
      <rect>
       <x>460</x>
@@ -305,8 +305,14 @@ background-color: #AAB1C1;
     </property>
     <property name="styleSheet">
      <string notr="true">QTableView {
-border-color: #B672EA
-}</string>
+        gridline-color: #99AAD2;
+		border: 10 px solid #99AAD2;
+		
+    }
+    QHeaderView::section {
+        background-color:#99AAD2;
+		padding: 0 px;
+    }</string>
     </property>
     <property name="gridStyle">
      <enum>Qt::CustomDashLine</enum>
@@ -382,6 +388,35 @@ background-color: #AAB1C1;
     </property>
     <property name="text">
      <string>?</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="expBtn">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>630</y>
+      <width>401</width>
+      <height>71</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>News Cycle</family>
+      <pointsize>24</pointsize>
+     </font>
+    </property>
+    <property name="cursor">
+     <cursorShape>OpenHandCursor</cursorShape>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton:hover{
+border: none;
+border-radius: 25px;
+background-color: #99AAD2;
+}</string>
+    </property>
+    <property name="text">
+     <string>Расход материалов</string>
     </property>
    </widget>
   </widget>
