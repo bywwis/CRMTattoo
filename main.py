@@ -5,6 +5,7 @@ from PyQt5.QtSql import QSqlDatabase, QSqlQuery, QSqlTableModel, QSqlQueryModel
 from design import Ui_MainWindow
 from dialogDelNote import Ui_DialogDelNote
 import sys
+import datetime
 
 class TableNote(QtCore.QAbstractTableModel):
     def __init__(self, db):
@@ -294,10 +295,15 @@ class MyWindow(QtWidgets.QMainWindow):
 
         self.model = TableNote(self.db)
         self.ui.tableView.setModel(self.model)
+        self.ui.tableView.verticalHeader().setVisible(False)
 
         header = self.ui.tableView.horizontalHeader()
         header.setStretchLastSection(True)
         header.setSectionResizeMode(QHeaderView.Stretch)
+
+        date_today = datetime.date.today()
+        formatted_date = date_today.strftime("%d.%m.%Y")
+        self.ui.labelDate.setText(f"{formatted_date}")
 
     def show_clients(self):
         self.ui.clientBtn.setStyleSheet("border: none; border-radius: 25px; background-color: #99AAD2;")

@@ -143,15 +143,44 @@ class Ui_MainWindow(object):
         self.delBtn.setObjectName("delBtn")
         self.tableView = QtWidgets.QTableView(self.centralwidget)
         self.tableView.setGeometry(QtCore.QRect(460, 180, 1431, 841))
+        self.tableView.setAutoFillBackground(False)
         self.tableView.setStyleSheet("QTableView {\n"
-"        gridline-color: #99AAD2;\n"
-"        border: 10 px solid #99AAD2;\n"
-"        \n"
-"    }\n"
-"    QHeaderView::section {\n"
-"        background-color:#99AAD2;\n"
-"        padding: 0 px;\n"
-"    }")
+"  border:none;\n"
+"  border-top:2px solid #99AAD2; \n"
+"  border-radius: 5px;\n"
+"  gridline-color: #99AAD2; \n"
+"  border-left: 2px solid #99AAD2; \n"
+"  border-right: 2px solid #99AAD2; \n"
+"  border-bottom:1px solid #99AAD2; \n"
+"  color: rgb(0, 0, 0);  \n"
+"  font: 14pt \"News Cycle\";\n"
+"  }\n"
+"\n"
+"QTableView::item {\n"
+"    border-bottom:1px solid #99AAD2; \n"
+"    border-left: 0.5px solid #99AAD2; \n"
+"}\n"
+" \n"
+"QTableView::item:selected {\n"
+"  background-color: #AAB1C1;\n"
+" }\n"
+"\n"
+"QHeaderView::section {\n"
+"  border: none;\n"
+"  border-bottom: 2px solid #99AAD2; \n"
+"  background-color: #bcc7e0; \n"
+"  border-left: 0.5px solid #99AAD2; \n"
+"  border-right: 0.5px solid #99AAD2;\n"
+"  color: rgb(0, 0, 0);\n"
+"  font: 14pt \"News Cycle\";\n"
+"  padding: 3px;\n"
+"}\n"
+"\n"
+"QHeaderView::down-arrow {\n"
+"  width: 26px; \n"
+"  height:18px; \n"
+"  subcontrol-position: bottom right; \n"
+"}")
         self.tableView.setGridStyle(QtCore.Qt.CustomDashLine)
         self.tableView.setObjectName("tableView")
         self.period = QtWidgets.QComboBox(self.centralwidget)
