@@ -12,6 +12,7 @@ class TableNote(QtCore.QAbstractTableModel):
         super(TableNote, self).__init__()
         self.db = db
         self.data_list = []
+        self.id_list = []
         self.headers = ["Имя", "Номер телефона", "Название услуги", "Дата", "Время"]
 
         self.load_data()
@@ -32,10 +33,17 @@ class TableNote(QtCore.QAbstractTableModel):
         """, self.db)
 
         while query.next():
-            row_data = []
+            display_row = []
+            id_row = []
+
             for i in range(query.record().count()):
-                row_data.append(query.value(i))
-            self.data_list.append(tuple(row_data))
+                if i < 5:
+                    display_row.append(query.value(i))
+                else:
+                    id_row.append(query.value(i))
+
+            self.data_list.append(display_row)
+            self.id_list.append(id_row)
 
     def rowCount(self, parent=QtCore.QModelIndex()):
         return len(self.data_list)
@@ -57,11 +65,15 @@ class TableNote(QtCore.QAbstractTableModel):
             self.data_list[row] = tuple(self.data_list[row])
 
             query = QSqlQuery(self.db)
+            field_name = self.headers[col]
+
             if col == 0:
                 try:
                     query.prepare("UPDATE Клиенты SET Имя=? WHERE ID=?")
                     query.addBindValue(value)
                     query.addBindValue(self.get_client_id(row))
+                    if not query.exec_():
+                        print(f"Ошибка выполнения запроса на обновление имени: {query.lastError().text()}")
                 except Exception as e:
                     print(e)
             elif col == 1:
@@ -94,7 +106,7 @@ class TableNote(QtCore.QAbstractTableModel):
                     print(e)
 
             if not query.exec_():
-                print(f"Ошибка выполнения запроса: {query.lastError().text()}")
+                print(f"Ошибка выполнения запроса на обновление: {query.lastError().text()}")
 
             self.dataChanged.emit(index, index)
             return True
@@ -112,35 +124,48 @@ class TableNote(QtCore.QAbstractTableModel):
                 return self.headers[section]
 
     def get_client_id(self, row):
-        return self.data_list[row][5]
+        return self.id_list[row][0]
 
     def get_service_id(self, row):
-        return self.data_list[row][6]
+        return self.id_list[row][1]
 
     def get_record_id(self, row):
-        return self.data_list[row][7]
+        return self.id_list[row][2]
 
     def insert_row_note(self):
         queries = [
             'INSERT INTO Клиенты (Имя, Телефон) VALUES ("", "")',
             'INSERT INTO Услуги (Наименование) VALUES ("")',
-            'INSERT INTO Запись (IDклиента, IDуслуги, Дата, Время) ' \
-            'VALUES ((SELECT MAX(ID) FROM Клиенты), ' \
-                    '(SELECT MAX(ID) FROM Услуги), "", "")'
+            'INSERT INTO Запись (IDклиента, IDуслуги, Дата, Время) '
+            'VALUES ((SELECT MAX(ID) FROM Клиенты), '
+            '(SELECT MAX(ID) FROM Услуги), "", "")'
         ]
 
-        for query_str in queries:
-            query = QSqlQuery(self.db)
-            if not query.exec_(query_str):
-                print(f"Ошибка выполнения запроса: {query.lastError().text()}")
-                break
+        client_id = None
+        service_id = None
+        record_id = None
 
-    def delete_row_note(self, row):
-        id_row = self.data_list[row][7]
         query = QSqlQuery(self.db)
-        query.prepare(
-            f"""DELETE FROM Запись WHERE ID = {id_row}""")
-        if not query.exec_():
-            QMessageBox.warning(self, "Ошибка", "Не удалось удалить строку.")
-        else:
-            self.load_data()
+
+        if not query.exec_(queries[0]):
+            print(f"Ошибка выполнения запроса на вставку клиента: {query.lastError().text()}")
+            return
+        client_id = query.lastInsertId()
+        if not query.exec_(queries[1]):
+            print(f"Ошибка выполнения запроса на вставку услуги: {query.lastError().text()}")
+            return
+        service_id = query.lastInsertId()
+        if not query.exec_(queries[2]):
+            print(f"Ошибка выполнения запроса на вставку записи: {query.lastError().text()}")
+            return
+        record_id = query.lastInsertId()
+
+        self.id_list.append([client_id, service_id, record_id])
+
+    # def delete_row_note(self, row):
+    #     id_row = self.id_list[row][7]
+    #     query = QSqlQuery(self.db)
+    #     query.prepare(
+    #         f"""DELETE FROM Запись WHERE ID = {id_row}""")
+    #     if not query.exec_():
+    #         QMessageBox.warning(self, "Ошибка", "Не удалось удалить строку.")
