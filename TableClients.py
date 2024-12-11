@@ -29,7 +29,7 @@ class TableClients(QtCore.QAbstractTableModel):
             row_data = []
             for i in range(query.record().count()):
                 row_data.append(query.value(i))
-            self.data_list.append(row_data)
+            self.data_list.append(tuple(row_data))
 
     def rowCount(self, parent=QtCore.QModelIndex()):
         return len(self.data_list)

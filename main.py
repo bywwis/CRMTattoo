@@ -73,6 +73,7 @@ class MyWindow(QtWidgets.QMainWindow):
 
         self.model = TableClients(self.db)
         self.ui.tableView.setModel(self.model)
+        self.ui.tableView.verticalHeader().setVisible(False)
 
         header = self.ui.tableView.horizontalHeader()
         header.setStretchLastSection(True)
@@ -97,6 +98,7 @@ class MyWindow(QtWidgets.QMainWindow):
 
         self.model = TableNote(self.db)
         self.ui.tableView.setModel(self.model)
+        self.ui.tableView.verticalHeader().setVisible(False)
 
         header = self.ui.tableView.horizontalHeader()
         header.setStretchLastSection(True)
@@ -121,6 +123,7 @@ class MyWindow(QtWidgets.QMainWindow):
 
         self.model = TableConsum(self.db)
         self.ui.tableView.setModel(self.model)
+        self.ui.tableView.verticalHeader().setVisible(False)
 
         header = self.ui.tableView.horizontalHeader()
         header.setStretchLastSection(True)
@@ -145,6 +148,7 @@ class MyWindow(QtWidgets.QMainWindow):
 
         self.model = TablePrice(self.db)
         self.ui.tableView.setModel(self.model)
+        self.ui.tableView.verticalHeader().setVisible(False)
 
         header = self.ui.tableView.horizontalHeader()
         header.setStretchLastSection(True)
@@ -169,6 +173,7 @@ class MyWindow(QtWidgets.QMainWindow):
 
         self.model = TableExp(self.db)
         self.ui.tableView.setModel(self.model)
+        self.ui.tableView.verticalHeader().setVisible(False)
 
         header = self.ui.tableView.horizontalHeader()
         header.setStretchLastSection(True)
@@ -179,7 +184,7 @@ class MyWindow(QtWidgets.QMainWindow):
             self.close()
 
     def open_dialogDelNote(self):
-        self.dialog = DialogDelNote()
+        self.dialog = DelNote()
         self.dialog.show()
 
     def update_date_label(self):
@@ -192,6 +197,7 @@ class MyWindow(QtWidgets.QMainWindow):
             self.model.beginInsertRows(QtCore.QModelIndex(), self.model.rowCount(), self.model.rowCount())
             self.model.data_list.append(["" for _ in range(self.model.columnCount())])
             self.model.endInsertRows()
+            self.model.insert_row_note()
         except Exception as e:
             QMessageBox.critical(self, "Ошибка", f"Ошибка при добавлении строки: {e}")
 

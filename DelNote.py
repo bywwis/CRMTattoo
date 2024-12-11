@@ -7,9 +7,8 @@ from dialogDelNote import Ui_DialogDelNote
 import sys
 import datetime
 
-
 class DelNote(QtWidgets.QDialog):
     def __init__(self):
-        super(DialogDelNote, self).__init__()
+        super(DelNote, self).__init__()
         self.ui = Ui_DialogDelNote()
         self.ui.setupUi(self)
