@@ -57,22 +57,34 @@ class TableNote(QtCore.QAbstractTableModel):
             self.data_list[row] = tuple(self.data_list[row])
 
             query = QSqlQuery(self.db)
-            if col == 0:  # Имя клиента
-                query.prepare("UPDATE Клиенты SET Имя=? WHERE ID=?")
-                query.addBindValue(value)
-                query.addBindValue(self.get_client_id(row))
-            elif col == 1:  # Номер телефона
-                query.prepare("UPDATE Клиенты SET Телефон=? WHERE ID=?")
-                query.addBindValue(value)
-                query.addBindValue(self.get_client_id(row))
-            elif col == 2:  # Название услуги
-                query.prepare("UPDATE Услуги SET Наименование=? WHERE ID=?")
-                query.addBindValue(value)
-                query.addBindValue(self.get_service_id(row))
-            elif col == 3:  # Дата
-                query.prepare("UPDATE Запись SET Дата=? WHERE ID=?")
-                query.addBindValue(value)
-                query.addBindValue(self.get_record_id(row))
+            if col == 0:
+                try:
+                    query.prepare("UPDATE Клиенты SET Имя=? WHERE ID=?")
+                    query.addBindValue(value)
+                    query.addBindValue(self.get_client_id(row))
+                except Exception as e:
+                    print(e)
+            elif col == 1:
+                try:
+                    query.prepare("UPDATE Клиенты SET Телефон=? WHERE ID=?")
+                    query.addBindValue(value)
+                    query.addBindValue(self.get_client_id(row))
+                except Exception as e:
+                    print(e)
+            elif col == 2:
+                try:
+                    query.prepare("UPDATE Услуги SET Наименование=? WHERE ID=?")
+                    query.addBindValue(value)
+                    query.addBindValue(self.get_service_id(row))
+                except Exception as e:
+                    print(e)
+            elif col == 3:
+                try:
+                    query.prepare("UPDATE Запись SET Дата=? WHERE ID=?")
+                    query.addBindValue(value)
+                    query.addBindValue(self.get_record_id(row))
+                except Exception as e:
+                    print(e)
             elif col == 4:  # Время
                 try:
                     query.prepare("UPDATE Запись SET Время=? WHERE ID=?")
@@ -122,3 +134,13 @@ class TableNote(QtCore.QAbstractTableModel):
             if not query.exec_(query_str):
                 print(f"Ошибка выполнения запроса: {query.lastError().text()}")
                 break
+
+    def delete_row_note(self, row):
+        id_row = self.data_list[row][7]
+        query = QSqlQuery(self.db)
+        query.prepare(
+            f"""DELETE FROM Запись WHERE ID = {id_row}""")
+        if not query.exec_():
+            QMessageBox.warning(self, "Ошибка", "Не удалось удалить строку.")
+        else:
+            self.load_data()

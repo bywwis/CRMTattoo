@@ -184,8 +184,19 @@ class MyWindow(QtWidgets.QMainWindow):
             self.close()
 
     def open_dialogDelNote(self):
-        self.dialog = DelNote()
-        self.dialog.show()
+        try:
+            index = self.ui.tableView.currentIndex()
+            if index.isValid():
+                self.dialog = DelNote()
+                result = self.dialog.exec_()
+                if result == QtWidgets.QDialog.Accepted:
+                    row = index.row()
+                    self.model.delete_row_note(row)
+                    self.delete_row(row)
+            else:
+                QMessageBox.warning(self, "Предупреждение", "Сначала выберите строку для удаления.")
+        except Exception as e:
+            print('Ошибка удаления: ', e)
 
     def update_date_label(self):
         selected_date = self.ui.calendar.selectedDate()
@@ -201,6 +212,10 @@ class MyWindow(QtWidgets.QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Ошибка", f"Ошибка при добавлении строки: {e}")
 
+    def delete_row(self, row):
+        self.model.beginRemoveRows(QtCore.QModelIndex(), row, row)
+        self.model.removeRow(row)
+        self.model.endRemoveRows()
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)

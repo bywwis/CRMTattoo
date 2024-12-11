@@ -12,3 +12,6 @@ class DelNote(QtWidgets.QDialog):
         super(DelNote, self).__init__()
         self.ui = Ui_DialogDelNote()
         self.ui.setupUi(self)
+
+        self.ui.yesBtn.clicked.connect(self.accept)
+        self.ui.noBtn.clicked.connect(self.reject)
