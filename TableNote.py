@@ -197,11 +197,17 @@ class TableNote(QtCore.QAbstractTableModel):
                                FROM Запись
                                JOIN Клиенты ON Запись.IDклиента = Клиенты.ID
                                JOIN Услуги ON Запись.IDуслуги = Услуги.ID
-                               WHERE Клиенты.Имя LIKE ?
+                               WHERE Клиенты.Имя LIKE ? OR Клиенты.Телефон LIKE ? OR Услуги.Наименование LIKE ?
                               """)
 
                 name = f"%{search_text}%"
+                phone = f"%{search_text}%"
+                service = f"%{search_text}%"
+                record_date = f"%{search_text}%"
+                record_time = f"%{search_text}%"
                 query.addBindValue(name)
+                query.addBindValue(phone)
+                query.addBindValue(service)
 
                 if not query.exec_():
                     print(f"Ошибка выполнения запроса: {query.lastError().text()}")
