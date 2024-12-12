@@ -18,6 +18,8 @@ class TableNote(QtCore.QAbstractTableModel):
         self.load_data()
 
     def load_data(self):
+        self.beginResetModel()
+
         query = QSqlQuery("""
             SELECT Клиенты.Имя, 
                    Клиенты.Телефон, 
@@ -32,6 +34,9 @@ class TableNote(QtCore.QAbstractTableModel):
             JOIN Услуги ON Запись.IDуслуги = Услуги.ID
         """, self.db)
 
+        self.data_list.clear()
+        self.id_list.clear()
+
         while query.next():
             display_row = []
             id_row = []
@@ -44,6 +49,8 @@ class TableNote(QtCore.QAbstractTableModel):
 
             self.data_list.append(display_row)
             self.id_list.append(id_row)
+
+        self.endResetModel()
 
     def rowCount(self, parent=QtCore.QModelIndex()):
         return len(self.data_list)
@@ -162,10 +169,60 @@ class TableNote(QtCore.QAbstractTableModel):
 
         self.id_list.append([client_id, service_id, record_id])
 
-    # def delete_row_note(self, row):
-    #     id_row = self.id_list[row][7]
-    #     query = QSqlQuery(self.db)
-    #     query.prepare(
-    #         f"""DELETE FROM Запись WHERE ID = {id_row}""")
-    #     if not query.exec_():
-    #         QMessageBox.warning(self, "Ошибка", "Не удалось удалить строку.")
+    def delete_row_note(self, row):
+        id_row = self.id_list[row][2]
+        query = QSqlQuery(self.db)
+        query.prepare(
+            f"""DELETE FROM Запись WHERE ID = {id_row}""")
+        if not query.exec_():
+            QMessageBox.warning(self, "Ошибка", "Не удалось удалить строку.")
+
+    def search_row_note(self, search_text):
+        try:
+            if search_text == "":
+                self.load_data()
+            else:
+                self.beginResetModel()
+
+                query = QSqlQuery(self.db)
+                query.prepare("""
+                               SELECT Клиенты.Имя, 
+                                      Клиенты.Телефон, 
+                                      Услуги.Наименование, 
+                                      Запись.Дата, 
+                                      Запись.Время,
+                                      Запись.IDклиента,
+                                      Запись.IDуслуги,
+                                      Запись.ID
+                               FROM Запись
+                               JOIN Клиенты ON Запись.IDклиента = Клиенты.ID
+                               JOIN Услуги ON Запись.IDуслуги = Услуги.ID
+                               WHERE Клиенты.Имя LIKE ?
+                              """)
+
+                name = f"%{search_text}%"
+                query.addBindValue(name)
+
+                if not query.exec_():
+                    print(f"Ошибка выполнения запроса: {query.lastError().text()}")
+                else:
+                    self.data_list.clear()
+                    self.id_list.clear()
+
+                while query.next():
+                    display_row = []
+                    id_row = []
+
+                    for i in range(query.record().count()):
+                        if i < 5:
+                            display_row.append(query.value(i))
+                        else:
+                            id_row.append(query.value(i))
+
+                    self.data_list.append(display_row)
+                    self.id_list.append(id_row)
+
+                self.endResetModel()
+
+        except Exception as e:
+            print("Ошибка поиска: ", e)

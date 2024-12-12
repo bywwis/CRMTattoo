@@ -54,6 +54,8 @@ class MyWindow(QtWidgets.QMainWindow):
         formatted_date = date_today.strftime("%d.%m.%Y")
         self.ui.labelDate.setText(f"{formatted_date}")
 
+        self.ui.searchTxt.textChanged.connect(lambda: self.on_search_text_changed(self.ui.searchTxt.toPlainText()))
+
     def show_clients(self):
         self.ui.clientBtn.setStyleSheet("border: none; border-radius: 25px; background-color: #99AAD2;")
         self.ui.recordsBtn.setStyleSheet(
@@ -178,6 +180,12 @@ class MyWindow(QtWidgets.QMainWindow):
         header = self.ui.tableView.horizontalHeader()
         header.setStretchLastSection(True)
         header.setSectionResizeMode(QHeaderView.Stretch)
+
+    def on_search_text_changed(self, search_text):
+        try:
+            self.model.search_row_note(search_text)
+        except Exception as e:
+            print("Ошибка ввода в строку для поиска: ", e)
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Escape:
