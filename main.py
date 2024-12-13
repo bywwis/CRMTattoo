@@ -2,6 +2,7 @@ from logging import disable
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import *
 from PyQt5.QtSql import QSqlDatabase, QSqlQuery, QSqlTableModel, QSqlQueryModel
+from PyQt5.QtCore import QDate
 from design import Ui_MainWindow
 from dialogDelNote import Ui_DialogDelNote
 import sys
@@ -34,7 +35,9 @@ class MyWindow(QtWidgets.QMainWindow):
         self.ui.addBtn.clicked.connect(self.add_row)
         self.ui.delBtn.clicked.connect(self.open_dialogDelNote)
         self.ui.hintBtn.setToolTip("Для того, чтобы отредактировать данные, кликните дважды по ячейке таблицы")
+
         self.ui.calendar.selectionChanged.connect(self.update_date_label)
+        self.ui.period.currentIndexChanged.connect(self.on_period_changed)
 
         self.db = QSqlDatabase.addDatabase('QSQLITE')
         self.db.setDatabaseName('database.db')
@@ -54,7 +57,7 @@ class MyWindow(QtWidgets.QMainWindow):
         formatted_date = date_today.strftime("%d.%m.%Y")
         self.ui.labelDate.setText(f"{formatted_date}")
 
-        self.ui.searchTxt.textChanged.connect(lambda: self.on_search_text_changed(self.ui.searchTxt.toPlainText()))
+        self.ui.searchTxt.textChanged.connect(lambda: self.search_text(self.ui.searchTxt.toPlainText()))
 
     def show_clients(self):
         self.ui.clientBtn.setStyleSheet("border: none; border-radius: 25px; background-color: #99AAD2;")
@@ -181,12 +184,6 @@ class MyWindow(QtWidgets.QMainWindow):
         header.setStretchLastSection(True)
         header.setSectionResizeMode(QHeaderView.Stretch)
 
-    def on_search_text_changed(self, search_text):
-        try:
-            self.model.search_row_note(search_text)
-        except Exception as e:
-            print("Ошибка ввода в строку для поиска: ", e)
-
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Escape:
             self.close()
@@ -211,8 +208,39 @@ class MyWindow(QtWidgets.QMainWindow):
         formatted_date = selected_date.toString("dd.MM.yyyy")
         self.ui.labelDate.setText(f"{formatted_date}")
 
+        self.on_period_changed(self.ui.period.currentIndex())
+
+    def on_period_changed(self, index):
+        try:
+            period = self.ui.period.itemText(index)
+            current_date = QDate.fromString(self.ui.labelDate.text(), "dd.MM.yyyy")
+
+            if period == "День":
+                start_date = current_date.toString("dd.MM.yyyy")
+                end_date = start_date
+            elif period == "Неделя":
+                start_date = current_date.toString("dd.MM.yyyy")
+                end_date = current_date.addDays(7).toString("dd.MM.yyyy")
+            elif period == "Месяц":
+                start_date = current_date.toString("dd.MM.yyyy")
+                end_date = current_date.addMonths(1).toString("dd.MM.yyyy")
+            elif period == "Год":
+                start_date = current_date.toString("dd.MM.yyyy")
+                end_date = current_date.addYears(1).toString("dd.MM.yyyy")
+
+            self.filter_table(start_date, end_date)
+
+        except Exception as e:
+            print("Ошибка смены периода:", e)
+
+    def filter_table(self, start_date, end_date):
+        self.model.load_filtered_data(period=self.ui.period.currentText(),
+                                      start_date=start_date,
+                                      end_date=end_date)
+
     def add_row(self):
         try:
+            # зависит от модели данных
             self.model.beginInsertRows(QtCore.QModelIndex(), self.model.rowCount(), self.model.rowCount())
             self.model.data_list.append(["" for _ in range(self.model.columnCount())])
             self.model.endInsertRows()
@@ -224,6 +252,13 @@ class MyWindow(QtWidgets.QMainWindow):
         self.model.beginRemoveRows(QtCore.QModelIndex(), row, row)
         self.model.removeRow(row)
         self.model.endRemoveRows()
+
+    def search_text(self, search_text):
+        try:
+            # зависит от модели даннх
+            self.model.search_row_note(search_text)
+        except Exception as e:
+            print("Ошибка ввода в строку для поиска: ", e)
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)

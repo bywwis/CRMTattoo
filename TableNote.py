@@ -232,3 +232,89 @@ class TableNote(QtCore.QAbstractTableModel):
 
         except Exception as e:
             print("Ошибка поиска: ", e)
+
+    def load_filtered_data(self, period, start_date=None, end_date=None):
+        try:
+            self.beginResetModel()
+            query = QSqlQuery(self.db)
+
+            if period == "Месяц":
+                month = start_date.split('.')[1]
+                year = start_date.split('.')[2]
+                query.prepare("""
+                    SELECT Клиенты.Имя, 
+                           Клиенты.Телефон, 
+                           Услуги.Наименование, 
+                           Запись.Дата, 
+                           Запись.Время,
+                           Запись.IDклиента,
+                           Запись.IDуслуги,
+                           Запись.ID
+                    FROM Запись
+                    JOIN Клиенты ON Запись.IDклиента = Клиенты.ID
+                    JOIN Услуги ON Запись.IDуслуги = Услуги.ID
+                    WHERE substr(Запись.Дата, 4, 2) = ? AND substr(Запись.Дата, 7, 4) = ?
+                """)
+                query.addBindValue(month)
+                query.addBindValue(year)
+
+            elif period == "Год":
+                year = start_date.split('.')[2]
+                query.prepare("""
+                    SELECT Клиенты.Имя, 
+                           Клиенты.Телефон, 
+                           Услуги.Наименование, 
+                           Запись.Дата, 
+                           Запись.Время,
+                           Запись.IDклиента,
+                           Запись.IDуслуги,
+                           Запись.ID
+                    FROM Запись
+                    JOIN Клиенты ON Запись.IDклиента = Клиенты.ID
+                    JOIN Услуги ON Запись.IDуслуги = Услуги.ID
+                    WHERE substr(Запись.Дата, 7, 4) = ?
+                """)
+                query.addBindValue(year)
+
+            else:
+                query.prepare("""
+                    SELECT Клиенты.Имя, 
+                           Клиенты.Телефон, 
+                           Услуги.Наименование, 
+                           Запись.Дата, 
+                           Запись.Время,
+                           Запись.IDклиента,
+                           Запись.IDуслуги,
+                           Запись.ID
+                    FROM Запись
+                    JOIN Клиенты ON Запись.IDклиента = Клиенты.ID
+                    JOIN Услуги ON Запись.IDуслуги = Услуги.ID
+                    WHERE Запись.Дата BETWEEN ? AND ?
+                """)
+                query.addBindValue(start_date)
+                query.addBindValue(end_date)
+
+            if not query.exec_():
+                print("Ошибка выполнения запроса на фильтрацию данных:", query.lastError().text())
+
+            self.data_list.clear()
+            self.id_list.clear()
+
+            while query.next():
+                display_row = []
+                id_row = []
+
+                for i in range(query.record().count()):
+                    if i < 5:
+                        display_row.append(query.value(i))
+                    else:
+                        id_row.append(query.value(i))
+
+                self.data_list.append(display_row)
+                self.id_list.append(id_row)
+
+            self.endResetModel()
+
+        except Exception as e:
+            print("Ошибка фильтрации данных в бд: ", e)
+
