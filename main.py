@@ -1,10 +1,16 @@
 from logging import disable
+
+from DelConsum import DelConsum
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import *
 from PyQt5.QtSql import QSqlDatabase, QSqlQuery, QSqlTableModel, QSqlQueryModel
 from PyQt5.QtCore import QDate
 from design import Ui_MainWindow
 from dialogDelNote import Ui_DialogDelNote
+from dialogDelClients import Ui_Dialog
+from dialogDelConsum import Ui_Dialog
+from dialogDelPrice import Ui_Dialog
+from dialogDelExp import Ui_Dialog
 import sys
 import datetime
 from TableNote import TableNote
@@ -13,6 +19,10 @@ from TableConsum import TableConsum
 from TablePrice import TablePrice
 from TableExp import TableExp
 from DelNote import DelNote
+from DelClients import DelClients
+from DelConsum import DelConsum
+from DelPrice import DelPrice
+from DelExp import DelExp
 
 
 class MyWindow(QtWidgets.QMainWindow):
@@ -33,7 +43,7 @@ class MyWindow(QtWidgets.QMainWindow):
         self.ui.expBtn.clicked.connect(self.show_exp)
 
         self.ui.addBtn.clicked.connect(self.add_row)
-        self.ui.delBtn.clicked.connect(self.open_dialogDelNote)
+        self.ui.delBtn.clicked.connect(self.open_dialog)
         self.ui.hintBtn.setToolTip("Для того, чтобы отредактировать данные, кликните дважды по ячейке таблицы")
 
         self.ui.calendar.selectionChanged.connect(self.update_date_label)
@@ -188,16 +198,33 @@ class MyWindow(QtWidgets.QMainWindow):
         if event.key() == QtCore.Qt.Key_Escape:
             self.close()
 
-    def open_dialogDelNote(self):
+    def open_dialog(self):
         try:
             index = self.ui.tableView.currentIndex()
             if index.isValid():
-                self.dialog = DelNote()
+                if isinstance(self.model, TableNote):
+                    self.dialog = DelNote()
+                elif isinstance(self.model, TableClients):
+                    self.dialog = DelClients()
+                elif isinstance(self.model, TableConsum):
+                    self.dialog = DelConsum()
+                elif isinstance(self.model, TableExp):
+                    self.dialog = DelExp()
+                elif isinstance(self.model, TablePrice):
+                    self.dialog = DelPrice()
                 result = self.dialog.exec_()
                 if result == QtWidgets.QDialog.Accepted:
                     row = index.row()
-                    self.model.delete_row_note(row)
-                    self.delete_row(row)
+                    if isinstance(self.model, TableNote):
+                        self.model.delete_row_note(row)
+                    elif isinstance(self.model, TableClients):
+                        self.model.delete_row_clients(row)
+                    elif isinstance(self.model, TableConsum):
+                        self.model.delete_row_consum(row)
+                    elif isinstance(self.model, TableExp):
+                        self.model.delete_row_exp(row)
+                    elif isinstance(self.model, TablePrice):
+                        self.model.delete_row_price(row)
             else:
                 QMessageBox.warning(self, "Предупреждение", "Сначала выберите строку для удаления.")
         except Exception as e:
@@ -234,29 +261,45 @@ class MyWindow(QtWidgets.QMainWindow):
             print("Ошибка смены периода:", e)
 
     def filter_table(self, start_date, end_date):
-        self.model.load_filtered_data(period=self.ui.period.currentText(),
-                                      start_date=start_date,
-                                      end_date=end_date)
+        if isinstance(self.model, TableNote):
+            self.model.load_filtered_data_note(period=self.ui.period.currentText(),
+                                               start_date=start_date,
+                                               end_date=end_date)
+        elif isinstance(self.model, TableClients):
+            self.model.load_filtered_data_clients(period=self.ui.period.currentText(),
+                                               start_date=start_date,
+                                               end_date=end_date)
 
     def add_row(self):
         try:
-            # зависит от модели данных
             self.model.beginInsertRows(QtCore.QModelIndex(), self.model.rowCount(), self.model.rowCount())
             self.model.data_list.append(["" for _ in range(self.model.columnCount())])
             self.model.endInsertRows()
-            self.model.insert_row_note()
+            if isinstance(self.model, TableNote):
+                self.model.insert_row_note()
+            elif isinstance(self.model, TableClients):
+                self.model.insert_row_clients()
+            elif isinstance(self.model, TableConsum):
+                self.model.insert_row_consum()
+            elif isinstance(self.model, TableExp):
+                self.model.insert_row_exp()
+            elif isinstance(self.model, TablePrice):
+                self.model.insert_row_price()
         except Exception as e:
-            QMessageBox.critical(self, "Ошибка", f"Ошибка при добавлении строки: {e}")
-
-    def delete_row(self, row):
-        self.model.beginRemoveRows(QtCore.QModelIndex(), row, row)
-        self.model.removeRow(row)
-        self.model.endRemoveRows()
+            print(f"Ошибка при добавлении строки: {e}")
 
     def search_text(self, search_text):
         try:
-            # зависит от модели даннх
-            self.model.search_row_note(search_text)
+            if isinstance(self.model, TableNote):
+                self.model.search_row_note(search_text)
+            elif isinstance(self.model, TableClients):
+                self.model.search_row_clients(search_text)
+            elif isinstance(self.model, TableConsum):
+                self.model.search_row_consum(search_text)
+            elif isinstance(self.model, TableExp):
+                self.model.search_row_exp(search_text)
+            elif isinstance(self.model, TablePrice):
+                self.model.search_row_price(search_text)
         except Exception as e:
             print("Ошибка ввода в строку для поиска: ", e)
 

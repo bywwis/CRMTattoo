@@ -12,24 +12,39 @@ class TableConsum(QtCore.QAbstractTableModel):
         super(TableConsum, self).__init__()
         self.db = db
         self.data_list = []
+        self.id_list = []
         self.headers = ["Наименование", "Стоимость", "Количество в наличии", "Единицы измерения"]
 
         self.load_data()
 
     def load_data(self):
+        self.beginResetModel()
+
         query = QSqlQuery("""
             SELECT Наименование, 
                    СтоимостьШтуки, 
                    КоличествоВНаличии,
-                   ЕдиницыИзмерения 
+                   ЕдиницыИзмерения,
+                   ID 
             FROM РасходныеМатериалы
         """, self.db)
 
+        self.data_list.clear()
+        self.id_list.clear()
+
         while query.next():
-            row_data = []
+            display_row = []
+            id_row = []
+
             for i in range(query.record().count()):
-                row_data.append(query.value(i))
-            self.data_list.append(row_data)
+                if i < 4:
+                    display_row.append(query.value(i))
+                else:
+                    id_row.append(query.value(i))
+
+            self.data_list.append(display_row)
+            self.id_list.append(id_row)
+        self.endResetModel()
 
     def rowCount(self, parent=QtCore.QModelIndex()):
         return len(self.data_list)
@@ -42,10 +57,53 @@ class TableConsum(QtCore.QAbstractTableModel):
             return self.data_list[index.row()][index.column()]
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
-        if index.isValid() and role == QtCore.Qt.EditRole:
-            self.data_list[index.row()][index.column()] = value
+        if role == QtCore.Qt.EditRole:
+            row = index.row()
+            col = index.column()
+
+            self.data_list[row] = list(self.data_list[row])
+            self.data_list[row][col] = value
+            self.data_list[row] = tuple(self.data_list[row])
+
+            query = QSqlQuery(self.db)
+
+            if col == 0:
+                try:
+                    query.prepare("UPDATE РасходныеМатериалы SET Наименование=? WHERE ID=?")
+                    query.addBindValue(value)
+                    query.addBindValue(self.get_consum_id(row))
+                    if not query.exec_():
+                        print(f"Ошибка выполнения запроса на обновление имени: {query.lastError().text()}")
+                except Exception as e:
+                    print(e)
+            elif col == 1:
+                try:
+                    query.prepare("UPDATE РасходныеМатериалы SET СтоимостьШтуки=? WHERE ID=?")
+                    query.addBindValue(value)
+                    query.addBindValue(self.get_consum_id(row))
+                except Exception as e:
+                    print(e)
+            elif col == 2:
+                try:
+                    query.prepare("UPDATE РасходныеМатериалы SET КоличествоВНаличии=? WHERE ID=?")
+                    query.addBindValue(value)
+                    query.addBindValue(self.get_consum_id(row))
+                except Exception as e:
+                    print(e)
+            elif col == 3:
+                try:
+                    query.prepare("UPDATE РасходныеМатериалы SET ЕдиницыИзмерения=? WHERE ID=?")
+                    query.addBindValue(value)
+                    query.addBindValue(self.get_consum_id(row))
+                except Exception as e:
+                    print(e)
+
+            if not query.exec_():
+                print(f"Ошибка выполнения запроса на обновление: {query.lastError().text()}")
+
             self.dataChanged.emit(index, index)
             return True
+
         return False
 
     def flags(self, index):
@@ -57,3 +115,83 @@ class TableConsum(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.DisplayRole:
             if orientation == QtCore.Qt.Horizontal:
                 return self.headers[section]
+
+    def get_consum_id(self, row):
+        return self.id_list[row][0]
+
+    def insert_row_consum(self):
+        queries = [
+            'INSERT INTO РасходныеМатериалы (Наименование, СтоимостьШтуки, КоличествоВНаличии, ЕдиницыИзмерения) '
+            'VALUES ("", 0, 0, "")',
+        ]
+
+        consum_id = None
+
+        query = QSqlQuery(self.db)
+
+        if not query.exec_(queries[0]):
+            print(f"Ошибка выполнения запроса на вставку материала: {query.lastError().text()}")
+            return
+        consum_id = query.lastInsertId()
+
+        self.id_list.append([consum_id])
+
+    def delete_row_consum(self, row):
+        id_row = self.get_consum_id(row)
+        query = QSqlQuery(self.db)
+        query.prepare(
+            f"""DELETE FROM РасходныеМатериалы WHERE ID = {id_row}""")
+        if not query.exec_():
+            QMessageBox.warning(self, "Ошибка", "Не удалось удалить строку в таблице РасходныеМатериалы.")
+        self.load_data()
+
+    def search_row_consum(self, search_text):
+        try:
+            if search_text == "":
+                self.load_data()
+            else:
+                self.beginResetModel()
+
+                query = QSqlQuery(self.db)
+                query.prepare(""" 
+                    SELECT  Наименование, 
+                            СтоимостьШтуки, 
+                            КоличествоВНаличии,
+                            ЕдиницыИзмерения,
+                            ID 
+                    FROM РасходныеМатериалы
+                    WHERE Наименование LIKE ? OR СтоимостьШтуки LIKE ? OR КоличествоВНаличии LIKE ? OR ЕдиницыИзмерения LIKE ?
+                              """)
+
+                name = f"%{search_text}%"
+                cost = f"%{search_text}%"
+                quantity = f"%{search_text}%"
+                unit = f"%{search_text}%"
+                query.addBindValue(name)
+                query.addBindValue(cost)
+                query.addBindValue(quantity)
+                query.addBindValue(unit)
+
+                if not query.exec_():
+                    print(f"Ошибка выполнения запроса: {query.lastError().text()}")
+                else:
+                    self.data_list.clear()
+                    self.id_list.clear()
+
+                while query.next():
+                    display_row = []
+                    id_row = []
+
+                    for i in range(query.record().count()):
+                        if i < 4:
+                            display_row.append(query.value(i))
+                        else:
+                            id_row.append(query.value(i))
+
+                    self.data_list.append(display_row)
+                    self.id_list.append(id_row)
+
+                self.endResetModel()
+
+        except Exception as e:
+            print("Ошибка поиска: ", e)

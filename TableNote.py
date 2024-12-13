@@ -72,7 +72,6 @@ class TableNote(QtCore.QAbstractTableModel):
             self.data_list[row] = tuple(self.data_list[row])
 
             query = QSqlQuery(self.db)
-            field_name = self.headers[col]
 
             if col == 0:
                 try:
@@ -104,7 +103,7 @@ class TableNote(QtCore.QAbstractTableModel):
                     query.addBindValue(self.get_record_id(row))
                 except Exception as e:
                     print(e)
-            elif col == 4:  # Время
+            elif col == 4:
                 try:
                     query.prepare("UPDATE Запись SET Время=? WHERE ID=?")
                     query.addBindValue(value)
@@ -170,12 +169,13 @@ class TableNote(QtCore.QAbstractTableModel):
         self.id_list.append([client_id, service_id, record_id])
 
     def delete_row_note(self, row):
-        id_row = self.id_list[row][2]
+        id_row = self.get_record_id(row)
         query = QSqlQuery(self.db)
         query.prepare(
             f"""DELETE FROM Запись WHERE ID = {id_row}""")
         if not query.exec_():
             QMessageBox.warning(self, "Ошибка", "Не удалось удалить строку.")
+        self.load_data()
 
     def search_row_note(self, search_text):
         try:
@@ -233,7 +233,7 @@ class TableNote(QtCore.QAbstractTableModel):
         except Exception as e:
             print("Ошибка поиска: ", e)
 
-    def load_filtered_data(self, period, start_date=None, end_date=None):
+    def load_filtered_data_note(self, period, start_date=None, end_date=None):
         try:
             self.beginResetModel()
             query = QSqlQuery(self.db)
