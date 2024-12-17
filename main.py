@@ -25,6 +25,7 @@ from DelPrice import DelPrice
 from DelExp import DelExp
 from designeFinance import Ui_Finance
 import pyqtgraph as pg
+import numpy as np
 
 class MyWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -364,10 +365,13 @@ class WindowFinance(QtWidgets.QMainWindow):
         self.ui.type.addItem("Выручка")
         self.ui.type.addItem("Прибыль")
         self.ui.type.addItem("Расходы")
+        self.ui.type.currentIndexChanged.connect(self.change_type)
 
         self.ui.displayType.addItem("График")
         self.ui.displayType.addItem("Диаграмма")
         self.ui.displayType.addItem("Гистограмма")
+        self.ui.displayType.currentIndexChanged.connect(self.change_display_type)
+
 
         self.ui.clientBtn.clicked.connect(self.show_clients)
         self.ui.recordsBtn.clicked.connect(self.show_notes)
@@ -388,25 +392,112 @@ class WindowFinance(QtWidgets.QMainWindow):
         formatted_date = date_today.strftime("%d.%m.%Y")
         self.ui.labelDate.setText(f"{formatted_date}")
 
-    #     # Создание виджета для графика
-    #     self.graph_widget = pg.PlotWidget()
-    #     self.ui.gridLayout.addWidget(self.graph_widget, 0, 0)  # Добавьте график в нужное место макета
-    #
-    #     # Генерация тестовых данных для графика
-    #     x = [1, 2, 3, 4, 5, 6, 7, 8]
-    #     y = [30, 32, 34, 32, 33, 31, 29, 32]
-    #
-    #     # Отображение графика
-    #     self.plot(x, y, "Test Data", "X Axis", "Y Axis")
-    #
-    # def plot(self, x, y, title, x_label, y_label):
-    #     """Функция для построения графика"""
-    #     pen = pg.mkPen(color=(153, 170, 210), width=2)
-    #     self.graph_widget.plot(x, y, pen=pen, symbol='o')  # Построение линии и точек
-    #     self.graph_widget.setTitle(title)
-    #     self.graph_widget.setLabel('left', y_label)
-    #     self.graph_widget.setLabel('bottom', x_label)
-    #     self.graph_widget.setBackground("#DCD6DC")
+        self.graph_widget = pg.PlotWidget(background="#dcd6dc")
+        self.ui.gridLayout.addWidget(self.graph_widget)
+
+        self.x = np.arange(10)
+        self.y = np.random.randint(0, 100, size=10)
+
+        self.plot_data()
+
+    def get_revenue(self):
+        query = QSqlQuery(self.db)
+
+        query.prepare("""
+            SELECT SUM(Услуги.Цена * КоличествоЗаписей) AS Выручка
+            FROM (
+                SELECT IDуслуги, COUNT(ID) AS КоличествоЗаписей
+                FROM Запись
+                GROUP BY IDуслуги)
+                AS ЗаписиПоУслугам
+            JOIN Услуги ON ЗаписиПоУслугам.IDуслуги = Услуги.ID
+        """)
+
+        if not query.exec_():
+            print("Ошибка выполения запроса на получение выручки: ", query.lastError().text())
+            return None
+
+        if query.first():
+            revenue = query.value(0)
+            print(revenue)
+            return revenue
+        else:
+            return 0
+
+    def get_expenses(self):
+        query = QSqlQuery(self.db)
+
+        query.prepare("""
+            SELECT SUM(РасходныеМатериалы.СтоимостьШтуки * УслугиРасходныеМатериалы.РасходМатериалаНаУслугу) AS Расход
+            FROM Запись 
+            JOIN УслугиРасходныеМатериалы ON Запись.IDуслуги = УслугиРасходныеМатериалы.IDУслуги
+            JOIN РасходныеМатериалы ON УслугиРасходныеМатериалы.IDМатериалов = РасходныеМатериалы.ID
+        """)
+
+        if not query.exec_():
+            print("Ошибка выполнения запроса на получение расхода: ", query.lastError().text())
+            return None
+
+        if query.first():
+            expenses = query.value(0)
+            print(expenses)
+            return expenses
+        else:
+            return 0
+
+    def get_profit(self):
+        revenue = self.get_revenue() or 0
+        expenses = self.get_expenses() or 0
+        profit = revenue - expenses
+        print(profit)
+        return profit
+
+    def change_type(self, index):
+        if index == 0:
+            data = self.get_revenue()
+            self.update_plot(data, 'Выручка')
+        elif index == 1:
+            data = self.get_profit()
+            self.update_plot(data, 'Прибыль')
+        elif index == 2:
+            data = self.get_expenses()
+            self.update_plot(data, 'Расходы')
+
+    def update_plot(self, data, label):
+        self.graph_widget.clear()
+
+        if isinstance(data, list):
+            self.x = np.arange(len(data))
+            self.y = data
+        else:
+            self.x = np.array([0])
+            self.y = np.array([data])
+
+    def change_display_type(self, index):
+        self.graph_widget.clear()
+
+        if index == 0:
+            self.plot_line_graph()
+        elif index == 1:
+            self.plot_bar_chart()
+        elif index == 2:
+            self.plot_histogram()
+
+    def plot_data(self):
+        self.plot_line_graph()
+
+    def plot_line_graph(self):
+        pen = pg.mkPen(color=(153, 170, 210), width=3)
+        self.graph_widget.plot(self.x, self.y, pen=pen)
+
+    def plot_bar_chart(self):
+        bg = pg.BarGraphItem(x=self.x, height=self.y, width=0.6, brush=(153, 170, 210))
+        self.graph_widget.addItem(bg)
+
+    def plot_histogram(self):
+        y, x = np.histogram(self.y, bins=np.linspace(0, 100, 11))
+        bg = pg.BarGraphItem(x=x[:-1], height=y, width=0.85, brush=(153, 170, 210))
+        self.graph_widget.addItem(bg)
 
     def update_date_label(self):
         selected_date = self.ui.calendar.selectedDate()

@@ -48,7 +48,6 @@ class TableExp(QtCore.QAbstractTableModel):
 
             self.data_list.append(display_row)
             self.id_list.append(id_row)
-            print(self.id_list)
 
         self.endResetModel()
 
