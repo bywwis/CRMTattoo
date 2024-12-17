@@ -48,6 +48,7 @@ class TableExp(QtCore.QAbstractTableModel):
 
             self.data_list.append(display_row)
             self.id_list.append(id_row)
+            print(self.id_list)
 
         self.endResetModel()
 
@@ -73,21 +74,13 @@ class TableExp(QtCore.QAbstractTableModel):
             query = QSqlQuery(self.db)
 
             if col == 0:
-                try:
-                    query.prepare("UPDATE Услуги SET Наименование=? WHERE ID=?")
-                    query.addBindValue(value)
-                    query.addBindValue(self.get_service_id(row))
-                    if not query.exec_():
-                        print(f"Ошибка выполнения запроса на обновление услуги: {query.lastError().text()}")
-                except Exception as e:
-                    print(e)
+                query.prepare("UPDATE УслугиРасходныеМатериалы SET IDУслуги = (SELECT ID FROM Услуги WHERE Наименование = ?) WHERE ID = ?")
+                query.addBindValue(value)
+                query.addBindValue(self.get_exp_id(row))
             elif col == 1:
-                try:
-                    query.prepare("UPDATE РасходныеМатериалы SET Наименование=? WHERE ID=?")
-                    query.addBindValue(value)
-                    query.addBindValue(self.get_consum_id(row))
-                except Exception as e:
-                    print(e)
+                query.prepare("UPDATE УслугиРасходныеМатериалы SET IDМатериалов = (SELECT ID FROM РасходныеМатериалы WHERE Наименование = ?) WHERE ID = ?")
+                query.addBindValue(value)
+                query.addBindValue(self.get_exp_id(row))
             elif col == 2:
                 try:
                     query.prepare("UPDATE УслугиРасходныеМатериалы SET РасходМатериалаНаУслугу=? WHERE ID=?")
@@ -131,34 +124,21 @@ class TableExp(QtCore.QAbstractTableModel):
         return self.id_list[row][2]
 
     def insert_row_exp(self):
-        queries = [
-            'INSERT INTO Услуги (Наименование) VALUES ("")',
-            'INSERT INTO РасходныеМатериалы (Наименование) VALUES ("")',
-            'INSERT INTO УслугиРасходныеМатериалы (IDУслуги, IDМатериалов, РасходМатериалаНаУслугу, ЕдиницыИзмерения) '
-            'VALUES ((SELECT MAX(ID) FROM Услуги), '
-            '(SELECT MAX(ID) FROM РасходныеМатериалы), "", "")'
-        ]
-
-        service_id = None
-        сonsum_id = None
-        exp_id = None
-
         query = QSqlQuery(self.db)
 
-        if not query.exec_(queries[0]):
-            print(f"Ошибка выполнения запроса на вставку клиента: {query.lastError().text()}")
-            return
-        service_id = query.lastInsertId()
-        if not query.exec_(queries[1]):
-            print(f"Ошибка выполнения запроса на вставку услуги: {query.lastError().text()}")
-            return
-        consum_id = query.lastInsertId()
-        if not query.exec_(queries[2]):
+        query.prepare(
+            'INSERT INTO УслугиРасходныеМатериалы (IDУслуги, IDМатериалов, РасходМатериалаНаУслугу, ЕдиницыИзмерения) VALUES (:id_услуги, :id_materiala, :расход, :единицы)')
+        query.addBindValue(None)
+        query.addBindValue(None)
+        query.addBindValue("")
+        query.addBindValue("")
+
+        if not query.exec_():
             print(f"Ошибка выполнения запроса на вставку записи: {query.lastError().text()}")
             return
-        exp_id = query.lastInsertId()
 
-        self.id_list.append([service_id, consum_id, exp_id])
+        exp_id = query.lastInsertId()
+        self.id_list.append([None, None, exp_id])
 
     def delete_row_exp(self, row):
         id_row = self.get_exp_id(row)

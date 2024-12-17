@@ -84,20 +84,9 @@ class TableNote(QtCore.QAbstractTableModel):
                     print(e)
             elif col == 1:
                     try:
-                        query.prepare("SELECT ID FROM Клиенты WHERE Телефон=?")
+                        query.prepare("UPDATE Клиенты SET Телефон=? WHERE ID=?")
                         query.addBindValue(value)
-                        if not query.exec_():
-                            print(f"Ошибка выполнения запроса на выборку клиента: {query.lastError().text()}")
-                            return False
-
-                        existing_client_id = None
-                        if query.next():
-                            existing_client_id = query.value(0)
-
-                        if existing_client_id is not None:
-                            query.prepare("UPDATE Запись SET IDклиента=? WHERE ID=?")
-                            query.addBindValue(existing_client_id)
-                            query.addBindValue(self.get_record_id(row))
+                        query.addBindValue(self.get_client_id(row))
                     except Exception as e:
                         print(e)
             elif col == 2:
@@ -116,6 +105,11 @@ class TableNote(QtCore.QAbstractTableModel):
                         query.prepare("UPDATE Запись SET IDуслуги=? WHERE ID=?")
                         query.addBindValue(existing_service_id)
                         query.addBindValue(self.get_record_id(row))
+                    else:
+                        query.prepare("UPDATE Услуги SET Наименование=? WHERE ID=?")
+                        query.addBindValue(value)
+                        query.addBindValue(self.get_service_id(row))
+
                 except Exception as e:
                     print(e)
             elif col == 3:

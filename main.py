@@ -1,9 +1,9 @@
 from logging import disable
-
 from DelConsum import DelConsum
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import *
 from PyQt5.QtSql import QSqlDatabase, QSqlQuery, QSqlTableModel, QSqlQueryModel
+from PyQt5 import QtSql
 from PyQt5.QtCore import QDate
 from design import Ui_MainWindow
 from dialogDelNote import Ui_DialogDelNote
@@ -23,7 +23,8 @@ from DelClients import DelClients
 from DelConsum import DelConsum
 from DelPrice import DelPrice
 from DelExp import DelExp
-
+from designeFinance import Ui_Finance
+import pyqtgraph as pg
 
 class MyWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -41,6 +42,7 @@ class MyWindow(QtWidgets.QMainWindow):
         self.ui.consumBtn.clicked.connect(self.show_consum)
         self.ui.priceBtn.clicked.connect(self.show_price)
         self.ui.expBtn.clicked.connect(self.show_exp)
+        self.ui.finanBtn.clicked.connect(self.show_finance)
 
         self.ui.addBtn.clicked.connect(self.add_row)
         self.ui.delBtn.clicked.connect(self.open_dialog)
@@ -194,6 +196,18 @@ class MyWindow(QtWidgets.QMainWindow):
         header.setStretchLastSection(True)
         header.setSectionResizeMode(QHeaderView.Stretch)
 
+        self.ui.tableView.setItemDelegateForColumn(0, ServiceDelegate(self.ui.tableView))
+        self.ui.tableView.setItemDelegateForColumn(1, MaterialDelegate(self.ui.tableView))
+
+    def show_finance(self):
+        try:
+            self.windowFinance = WindowFinance()
+            self.windowFinance.showFullScreen()
+
+            QtCore.QTimer.singleShot(1000, self.close)
+        except Exception as e:
+            print(e)
+
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Escape:
             self.close()
@@ -302,6 +316,174 @@ class MyWindow(QtWidgets.QMainWindow):
                 self.model.search_row_price(search_text)
         except Exception as e:
             print("Ошибка ввода в строку для поиска: ", e)
+
+
+class ServiceDelegate(QtWidgets.QStyledItemDelegate):
+    def createEditor(self, parent, option, index):
+        editor = QtWidgets.QComboBox(parent)
+        query = QtSql.QSqlQuery("SELECT Наименование FROM Услуги", self.parent().model().db)
+        while query.next():
+            editor.addItem(query.value(0))
+        return editor
+
+    def setEditorData(self, editor, index):
+        text = index.model().data(index, QtCore.Qt.DisplayRole)
+        editor.setCurrentText(text)
+
+    def setModelData(self, editor, model, index):
+        model.setData(index, editor.currentText(), QtCore.Qt.EditRole)
+
+
+class MaterialDelegate(QtWidgets.QStyledItemDelegate):
+    def createEditor(self, parent, option, index):
+        editor = QtWidgets.QComboBox(parent)
+        query = QtSql.QSqlQuery("SELECT Наименование FROM РасходныеМатериалы", self.parent().model().db)
+        while query.next():
+            editor.addItem(query.value(0))
+        return editor
+
+    def setEditorData(self, editor, index):
+        text = index.model().data(index, QtCore.Qt.DisplayRole)
+        editor.setCurrentText(text)
+
+    def setModelData(self, editor, model, index):
+        model.setData(index, editor.currentText(), QtCore.Qt.EditRole)
+
+
+class WindowFinance(QtWidgets.QMainWindow):
+    def __init__(self):
+        super(WindowFinance, self).__init__()
+        self.ui = Ui_Finance()
+        self.ui.setupUi(self)
+
+        self.ui.period.addItem("День")
+        self.ui.period.addItem("Неделя")
+        self.ui.period.addItem("Месяц")
+        self.ui.period.addItem("Год")
+
+        self.ui.type.addItem("Выручка")
+        self.ui.type.addItem("Прибыль")
+        self.ui.type.addItem("Расходы")
+
+        self.ui.displayType.addItem("График")
+        self.ui.displayType.addItem("Диаграмма")
+        self.ui.displayType.addItem("Гистограмма")
+
+        self.ui.clientBtn.clicked.connect(self.show_clients)
+        self.ui.recordsBtn.clicked.connect(self.show_notes)
+        self.ui.consumBtn.clicked.connect(self.show_consum)
+        self.ui.priceBtn.clicked.connect(self.show_price)
+        self.ui.expBtn.clicked.connect(self.show_exp)
+        self.ui.finanBtn.clicked.connect(self.show_finance)
+
+        self.ui.calendar.selectionChanged.connect(self.update_date_label)
+
+        self.db = QSqlDatabase.addDatabase('QSQLITE')
+        self.db.setDatabaseName('database.db')
+        if not self.db.open():
+            QMessageBox.critical(self, "Ошибка", "Не удалось подключиться к базе данных")
+            return
+
+        date_today = datetime.date.today()
+        formatted_date = date_today.strftime("%d.%m.%Y")
+        self.ui.labelDate.setText(f"{formatted_date}")
+
+    #     # Создание виджета для графика
+    #     self.graph_widget = pg.PlotWidget()
+    #     self.ui.gridLayout.addWidget(self.graph_widget, 0, 0)  # Добавьте график в нужное место макета
+    #
+    #     # Генерация тестовых данных для графика
+    #     x = [1, 2, 3, 4, 5, 6, 7, 8]
+    #     y = [30, 32, 34, 32, 33, 31, 29, 32]
+    #
+    #     # Отображение графика
+    #     self.plot(x, y, "Test Data", "X Axis", "Y Axis")
+    #
+    # def plot(self, x, y, title, x_label, y_label):
+    #     """Функция для построения графика"""
+    #     pen = pg.mkPen(color=(153, 170, 210), width=2)
+    #     self.graph_widget.plot(x, y, pen=pen, symbol='o')  # Построение линии и точек
+    #     self.graph_widget.setTitle(title)
+    #     self.graph_widget.setLabel('left', y_label)
+    #     self.graph_widget.setLabel('bottom', x_label)
+    #     self.graph_widget.setBackground("#DCD6DC")
+
+    def update_date_label(self):
+        selected_date = self.ui.calendar.selectedDate()
+        formatted_date = selected_date.toString("dd.MM.yyyy")
+        self.ui.labelDate.setText(f"{formatted_date}")
+
+    def keyPressEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Escape:
+            self.close()
+
+    def show_clients(self):
+        try:
+            self.window = MyWindow()
+            self.window.showFullScreen()
+
+            self.window.show_clients()
+
+            QtCore.QTimer.singleShot(1000, self.close)
+        except Exception as e:
+            print(e)
+
+    def show_notes(self):
+        try:
+            self.window = MyWindow()
+            self.window.showFullScreen()
+
+            self.window.show_notes()
+
+            QtCore.QTimer.singleShot(1000, self.close)
+        except Exception as e:
+            print(e)
+
+    def show_consum(self):
+        try:
+            self.window = MyWindow()
+            self.window.showFullScreen()
+
+            self.window.show_consum()
+
+            QtCore.QTimer.singleShot(1000, self.close)
+        except Exception as e:
+            print(e)
+
+    def show_price(self):
+        try:
+            self.window = MyWindow()
+            self.window.showFullScreen()
+
+            self.window.show_price()
+
+            QtCore.QTimer.singleShot(1000, self.close)
+        except Exception as e:
+            print(e)
+
+    def show_exp(self):
+        try:
+            self.window = MyWindow()
+            self.window.showFullScreen()
+
+            self.window.show_exp()
+
+            QtCore.QTimer.singleShot(1000, self.close)
+        except Exception as e:
+            print(e)
+
+    def show_finance(self):
+        try:
+            self.window = MyWindow()
+            self.window.showFullScreen()
+
+            self.window.show_finance()
+
+            QtCore.QTimer.singleShot(1000, self.close)
+        except Exception as e:
+            print(e)
+
+
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
