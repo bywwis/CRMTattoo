@@ -361,17 +361,17 @@ class WindowFinance(QtWidgets.QMainWindow):
         self.ui.period.addItem("Неделя")
         self.ui.period.addItem("Месяц")
         self.ui.period.addItem("Год")
+        self.ui.period.currentIndexChanged.connect(self.update_graph)
 
         self.ui.type.addItem("Выручка")
         self.ui.type.addItem("Прибыль")
         self.ui.type.addItem("Расходы")
-        self.ui.type.currentIndexChanged.connect(self.change_type)
+        self.ui.type.currentIndexChanged.connect(self.update_graph)
 
         self.ui.displayType.addItem("График")
         self.ui.displayType.addItem("Диаграмма")
         self.ui.displayType.addItem("Гистограмма")
-        self.ui.displayType.currentIndexChanged.connect(self.change_display_type)
-
+        self.ui.displayType.currentIndexChanged.connect(self.update_graph)
 
         self.ui.clientBtn.clicked.connect(self.show_clients)
         self.ui.recordsBtn.clicked.connect(self.show_notes)
@@ -395,109 +395,263 @@ class WindowFinance(QtWidgets.QMainWindow):
         self.graph_widget = pg.PlotWidget(background="#dcd6dc")
         self.ui.gridLayout.addWidget(self.graph_widget)
 
-        self.x = np.arange(10)
-        self.y = np.random.randint(0, 100, size=10)
+        self.update_graph()
 
-        self.plot_data()
+    def update_graph(self):
+        period = self.ui.period.currentText()
+        type_ = self.ui.type.currentText()
+        display_type = self.ui.displayType.currentText()
 
-    def get_revenue(self):
-        query = QSqlQuery(self.db)
+        current_date = QDate.fromString(self.ui.labelDate.text(), "dd.MM.yyyy")
 
-        query.prepare("""
-            SELECT SUM(Услуги.Цена * КоличествоЗаписей) AS Выручка
-            FROM (
-                SELECT IDуслуги, COUNT(ID) AS КоличествоЗаписей
-                FROM Запись
-                GROUP BY IDуслуги)
-                AS ЗаписиПоУслугам
-            JOIN Услуги ON ЗаписиПоУслугам.IDуслуги = Услуги.ID
-        """)
+        if period == "День":
+            start_date = current_date.toString("dd.MM.yyyy")
+            end_date = start_date
+        elif period == "Неделя":
+            start_date = current_date.toString("dd.MM.yyyy")
+            end_date = current_date.addDays(7).toString("dd.MM.yyyy")
+        elif period == "Месяц":
+            start_date = current_date.toString("dd.MM.yyyy")
+            end_date = current_date.addMonths(1).toString("dd.MM.yyyy")
+        elif period == "Год":
+            start_date = current_date.toString("dd.MM.yyyy")
+            end_date = current_date.addYears(1).toString("dd.MM.yyyy")
 
-        if not query.exec_():
-            print("Ошибка выполения запроса на получение выручки: ", query.lastError().text())
-            return None
+        data = self.get_data(type_, start_date, end_date, period)
 
-        if query.first():
-            revenue = query.value(0)
-            print(revenue)
-            return revenue
-        else:
-            return 0
+        if display_type == "График":
+            self.plot_line_graph(data)
+        elif display_type == "Диаграмма":
+            self.plot_bar_chart(data)
+        elif display_type == "Гистограмма":
+            self.plot_histogram(data)
 
-    def get_expenses(self):
-        query = QSqlQuery(self.db)
+    def get_data(self, type_, start_date, end_date, period):
+        try:
+            query = QSqlQuery(self.db)
 
-        query.prepare("""
-            SELECT SUM(РасходныеМатериалы.СтоимостьШтуки * УслугиРасходныеМатериалы.РасходМатериалаНаУслугу) AS Расход
-            FROM Запись 
-            JOIN УслугиРасходныеМатериалы ON Запись.IDуслуги = УслугиРасходныеМатериалы.IDУслуги
-            JOIN РасходныеМатериалы ON УслугиРасходныеМатериалы.IDМатериалов = РасходныеМатериалы.ID
-        """)
+            if type_ == "Выручка":
+                if period == "День" or period == "Неделя":
+                    query.prepare("""
+                                SELECT Дата, SUM(Услуги.Цена * КоличествоЗаписей) AS Выручка
+                                FROM (
+                                    SELECT IDуслуги, COUNT(ID) AS КоличествоЗаписей, Дата
+                                    FROM Запись
+                                    WHERE Дата BETWEEN ? AND ?
+                                    GROUP BY IDуслуги, Дата) AS ЗаписиПоУслугам
+                    JOIN Услуги ON ЗаписиПоУслугам.IDуслуги = Услуги.ID
+                    GROUP BY Дата
+                """)
 
-        if not query.exec_():
-            print("Ошибка выполнения запроса на получение расхода: ", query.lastError().text())
-            return None
+                    query.addBindValue(start_date)
+                    query.addBindValue(end_date)
 
-        if query.first():
-            expenses = query.value(0)
-            print(expenses)
-            return expenses
-        else:
-            return 0
+                elif period == "Месяц":
+                    month = start_date.split('.')[1]
+                    year = start_date.split('.')[2]
+                    query.prepare("""
+                        SELECT Дата, SUM(Услуги.Цена * КоличествоЗаписей) AS Выручка
+                        FROM (
+                            SELECT IDуслуги, COUNT(ID) AS КоличествоЗаписей, Дата
+                            FROM Запись
+                            WHERE substr(Дата, 4, 2) = ? AND substr(Дата, 7, 4) = ?
+                            GROUP BY IDуслуги, Дата)
+                        AS ЗаписиПоУслугам
+                        JOIN Услуги ON ЗаписиПоУслугам.IDуслуги = Услуги.ID
+                        GROUP BY Дата
+                    """)
 
-    def get_profit(self):
-        revenue = self.get_revenue() or 0
-        expenses = self.get_expenses() or 0
-        profit = revenue - expenses
-        print(profit)
-        return profit
+                    query.addBindValue(month)
+                    query.addBindValue(year)
 
-    def change_type(self, index):
-        if index == 0:
-            data = self.get_revenue()
-            self.update_plot(data, 'Выручка')
-        elif index == 1:
-            data = self.get_profit()
-            self.update_plot(data, 'Прибыль')
-        elif index == 2:
-            data = self.get_expenses()
-            self.update_plot(data, 'Расходы')
+                elif period == "Год":
+                    year = start_date.split('.')[2]
+                    query.prepare("""
+                        SELECT Дата, SUM(Услуги.Цена * КоличествоЗаписей) AS Выручка
+                        FROM (
+                            SELECT IDуслуги, COUNT(ID) AS КоличествоЗаписей, Дата
+                            FROM Запись
+                            WHERE substr(Дата, 7, 4) = ?
+                            GROUP BY IDуслуги, Дата)
+                        AS ЗаписиПоУслугам
+                        JOIN Услуги ON ЗаписиПоУслугам.IDуслуги = Услуги.ID
+                        GROUP BY Дата
+                    """)
 
-    def update_plot(self, data, label):
+                    query.addBindValue(year)
+
+            elif type_ == "Расходы":
+                if period == "День" or period == "Неделя":
+                    query.prepare("""
+                        SELECT Дата, SUM(РасходныеМатериалы.СтоимостьШтуки * УслугиРасходныеМатериалы.РасходМатериалаНаУслугу) AS Расход
+                        FROM Запись 
+                        JOIN УслугиРасходныеМатериалы ON Запись.IDуслуги = УслугиРасходныеМатериалы.IDУслуги
+                        JOIN РасходныеМатериалы ON УслугиРасходныеМатериалы.IDМатериалов = РасходныеМатериалы.ID
+                        WHERE Дата BETWEEN ? AND ?
+                        GROUP BY Дата
+                    """)
+
+                    query.addBindValue(start_date)
+                    query.addBindValue(end_date)
+
+                elif period == "Месяц":
+                    month = start_date.split('.')[1]
+                    year = start_date.split('.')[2]
+
+                    query.prepare("""
+                        SELECT Дата, SUM(РасходныеМатериалы.СтоимостьШтуки * УслугиРасходныеМатериалы.РасходМатериалаНаУслугу) AS Расход
+                        FROM Запись 
+                        JOIN УслугиРасходныеМатериалы ON Запись.IDуслуги = УслугиРасходныеМатериалы.IDУслуги
+                        JOIN РасходныеМатериалы ON УслугиРасходныеМатериалы.IDМатериалов = РасходныеМатериалы.ID
+                        WHERE substr(Дата, 4, 2) = ? AND substr(Дата, 7, 4) = ?
+                        GROUP BY Дата
+                    """)
+
+                    query.addBindValue(month)
+                    query.addBindValue(year)
+
+                elif period == "Год":
+                    year = start_date.split('.')[2]
+                    query.prepare("""
+                        SELECT Дата, SUM(РасходныеМатериалы.СтоимостьШтуки * УслугиРасходныеМатериалы.РасходМатериалаНаУслугу) AS Расход
+                        FROM Запись 
+                        JOIN УслугиРасходныеМатериалы ON Запись.IDуслуги = УслугиРасходныеМатериалы.IDУслуги
+                        JOIN РасходныеМатериалы ON УслугиРасходныеМатериалы.IDМатериалов = РасходныеМатериалы.ID
+                        WHERE substr(Дата, 7, 4) = ?
+                        GROUP BY Дата
+                    """)
+
+                    query.addBindValue(year)
+
+            elif type_ == "Прибыль":
+                if period == "День" or period == "Неделя":
+                    query.prepare("""
+                        WITH Выручка AS (
+                            SELECT Дата, SUM(Услуги.Цена * КоличествоЗаписей) AS Выручка
+                            FROM (
+                                SELECT IDуслуги, COUNT(ID) AS КоличествоЗаписей, Дата
+                                FROM Запись
+                                WHERE Дата BETWEEN ? AND ?
+                                GROUP BY IDуслуги, Дата)
+                                AS ЗаписиПоУслугам
+                            JOIN Услуги ON ЗаписиПоУслугам.IDуслуги = Услуги.ID
+                            GROUP BY Дата
+                        ), Расход AS (
+                            SELECT Дата, SUM(РасходныеМатериалы.СтоимостьШтуки * УслугиРасходныеМатериалы.РасходМатериалаНаУслугу) AS Расход
+                            FROM Запись 
+                            JOIN УслугиРасходныеМатериалы ON Запись.IDуслуги = УслугиРасходныеМатериалы.IDУслуги
+                            JOIN РасходныеМатериалы ON УслугиРасходныеМатериалы.IDМатериалов = РасходныеМатериалы.ID
+                            WHERE Дата BETWEEN ? AND ?
+                            GROUP BY Дата
+                        )
+                        SELECT Выручка.Дата, Выручка.Выручка - IFNULL(Расход.Расход, 0) AS Прибыль
+                        FROM Выручка LEFT JOIN Расход ON Выручка.Дата = Расход.Дата
+                    """)
+
+                    query.addBindValue(start_date)
+                    query.addBindValue(end_date)
+                    query.addBindValue(start_date)
+                    query.addBindValue(end_date)
+
+                elif period == "Месяц":
+                    month = start_date.split('.')[1]
+                    year = start_date.split('.')[2]
+                    query.prepare("""
+                        WITH Выручка AS (
+                            SELECT Дата, SUM(Услуги.Цена * КоличествоЗаписей) AS Выручка
+                            FROM (
+                                SELECT IDуслуги, COUNT(ID) AS КоличествоЗаписей, Дата
+                                FROM Запись
+                                substr(Дата, 4, 2) = ? AND substr(Дата, 7, 4) = ?
+                                GROUP BY IDуслуги, Дата)
+                            AS ЗаписиПоУслугам
+                            JOIN Услуги ON ЗаписиПоУслугам.IDуслуги = Услуги.ID
+                            GROUP BY Дата
+                        ), Расход AS (
+                                SELECT Дата, SUM(РасходныеМатериалы.СтоимостьШтуки * УслугиРасходныеМатериалы.РасходМатериалаНаУслугу) AS Расход
+                                FROM Запись 
+                                JOIN УслугиРасходныеМатериалы ON Запись.IDуслуги = УслугиРасходныеМатериалы.IDУслуги
+                                JOIN РасходныеМатериалы ON УслугиРасходныеМатериалы.IDМатериалов = РасходныеМатериалы.ID
+                                substr(Дата, 4, 2) = ? AND substr(Дата, 7, 4) = ?
+                                GROUP BY Дата
+                        )
+                        SELECT Выручка.Дата, Выручка.Выручка - IFNULL(Расход.Расход, 0) AS Прибыль
+                        FROM Выручка LEFT JOIN Расход ON Выручка.Дата = Расход.Дата
+                    """)
+
+                    query.addBindValue(month)
+                    query.addBindValue(year)
+
+                elif period == "Год":
+                    year = start_date.split('.')[2]
+                    query.prepare("""
+                        WITH Выручка AS (
+                            SELECT Дата, SUM(Услуги.Цена * КоличествоЗаписей) AS Выручка
+                            FROM (
+                                SELECT IDуслуги, COUNT(ID) AS КоличествоЗаписей, Дата
+                                FROM Запись
+                                substr(Дата, 4, 2) = ? AND substr(Дата, 7, 4) = ?
+                                GROUP BY IDуслуги, Дата)
+                            AS ЗаписиПоУслугам
+                            JOIN Услуги ON ЗаписиПоУслугам.IDуслуги = Услуги.ID
+                            GROUP BY Дата
+                        ), Расход AS (
+                                SELECT Дата, SUM(РасходныеМатериалы.СтоимостьШтуки * УслугиРасходныеМатериалы.РасходМатериалаНаУслугу) AS Расход
+                                FROM Запись 
+                                JOIN УслугиРасходныеМатериалы ON Запись.IDуслуги = УслугиРасходныеМатериалы.IDУслуги
+                                JOIN РасходныеМатериалы ON УслугиРасходныеМатериалы.IDМатериалов = РасходныеМатериалы.ID
+                                substr(Дата, 4, 2) = ? AND substr(Дата, 7, 4) = ?
+                                GROUP BY Дата
+                        )
+                        SELECT Выручка.Дата, Выручка.Выручка - IFNULL(Расход.Расход, 0) AS Прибыль
+                        FROM Выручка LEFT JOIN Расход ON Выручка.Дата = Расход.Дата
+                    """)
+                    query.addBindValue(year)
+
+
+            if not query.exec_():
+                print("Ошибка выполнения запроса на получение данных:", query.lastError().text())
+                return []
+
+            dates = []
+            values = []
+            while query.next():
+                dates.append(query.value(0))
+                values.append(query.value(1))
+
+            return {"dates": dates, "values": values}
+        except Exception as e:
+            print("Ошибка получения данных для графиков: ", e)
+
+    def plot_line_graph(self, data):
         self.graph_widget.clear()
+        x = np.arange(len(data["dates"]))
+        y = data["values"]
+        self.graph_widget.plot(x, y, symbol='o', pen=pg.mkPen(color=(153, 170, 210), width=3))
+        self.graph_widget.setLabel('left', 'Значение', units='')
+        self.graph_widget.setLabel('bottom', 'Дата', units='')
+        self.graph_widget.setTitle('График изменения значений')
 
-        if isinstance(data, list):
-            self.x = np.arange(len(data))
-            self.y = data
-        else:
-            self.x = np.array([0])
-            self.y = np.array([data])
-
-    def change_display_type(self, index):
+    def plot_bar_chart(self, data):
         self.graph_widget.clear()
+        x = np.arange(len(data["dates"]))
+        y = data["values"]
+        bar_graph_item = pg.BarGraphItem(x=x, height=y, width=0.8, brush=(153, 170, 210))
+        self.graph_widget.addItem(bar_graph_item)
+        self.graph_widget.setLabel('left', 'Значение', units='')
+        self.graph_widget.setLabel('bottom', 'Дата', units='')
+        self.graph_widget.setTitle('Диаграмма изменения значений')
 
-        if index == 0:
-            self.plot_line_graph()
-        elif index == 1:
-            self.plot_bar_chart()
-        elif index == 2:
-            self.plot_histogram()
-
-    def plot_data(self):
-        self.plot_line_graph()
-
-    def plot_line_graph(self):
-        pen = pg.mkPen(color=(153, 170, 210), width=3)
-        self.graph_widget.plot(self.x, self.y, pen=pen)
-
-    def plot_bar_chart(self):
-        bg = pg.BarGraphItem(x=self.x, height=self.y, width=0.6, brush=(153, 170, 210))
-        self.graph_widget.addItem(bg)
-
-    def plot_histogram(self):
-        y, x = np.histogram(self.y, bins=np.linspace(0, 100, 11))
-        bg = pg.BarGraphItem(x=x[:-1], height=y, width=0.85, brush=(153, 170, 210))
-        self.graph_widget.addItem(bg)
+    def plot_histogram(self, data):
+        self.graph_widget.clear()
+        y = data["values"]
+        hist, bin_edges = np.histogram(y, bins='auto')
+        x = bin_edges[:-1]
+        bar_graph_item = pg.BarGraphItem(x=x, height=hist, width=0.8, brush=(153, 170, 210))
+        self.graph_widget.addItem(bar_graph_item)
+        self.graph_widget.setLabel('left', 'Частота', units='')
+        self.graph_widget.setLabel('bottom', 'Значения', units='')
+        self.graph_widget.setTitle('Гистограмма распределения значений')
 
     def update_date_label(self):
         selected_date = self.ui.calendar.selectedDate()
