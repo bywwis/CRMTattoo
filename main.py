@@ -26,6 +26,7 @@ from DelExp import DelExp
 from designeFinance import Ui_Finance
 import pyqtgraph as pg
 import numpy as np
+from pyqtgraph.exporters import Exporter
 
 class MyWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -65,6 +66,8 @@ class MyWindow(QtWidgets.QMainWindow):
         header = self.ui.tableView.horizontalHeader()
         header.setStretchLastSection(True)
         header.setSectionResizeMode(QHeaderView.Stretch)
+
+        self.ui.tableView.setItemDelegateForColumn(2, ServiceDelegate(self.ui.tableView))
 
         date_today = datetime.date.today()
         formatted_date = date_today.strftime("%d.%m.%Y")
@@ -382,6 +385,8 @@ class WindowFinance(QtWidgets.QMainWindow):
 
         self.ui.calendar.selectionChanged.connect(self.update_date_label)
 
+        self.ui.reportBtn.clicked.connect(self.save_plot_to_file)
+
         self.db = QSqlDatabase.addDatabase('QSQLITE')
         self.db.setDatabaseName('database.db')
         if not self.db.open():
@@ -396,6 +401,14 @@ class WindowFinance(QtWidgets.QMainWindow):
         self.ui.gridLayout.addWidget(self.graph_widget)
 
         self.update_graph()
+
+    def save_plot_to_file(self):
+        file_name, _ = QFileDialog.getSaveFileName(self, "Сохранить график", "", "PNG (*.png);;PDF (*.pdf)")
+        if file_name:
+            exporter = pg.exporters.ImageExporter(self.graph_widget.plotItem)
+            exporter.parameters()['width'] = 1020
+            exporter.parameters()['height'] = 1080
+            exporter.export(file_name)
 
     def update_graph(self):
         period = self.ui.period.currentText()
@@ -544,7 +557,7 @@ class WindowFinance(QtWidgets.QMainWindow):
                             WHERE Дата BETWEEN ? AND ?
                             GROUP BY Дата
                         )
-                        SELECT Выручка.Дата, Выручка.Выручка - IFNULL(Расход.Расход, 0) AS Прибыль
+                        SELECT Выручка.Дата,  IFNULL(Выручка.Выручка, 0) - IFNULL(Расход.Расход, 0) AS Прибыль
                         FROM Выручка LEFT JOIN Расход ON Выручка.Дата = Расход.Дата
                     """)
 
@@ -575,7 +588,7 @@ class WindowFinance(QtWidgets.QMainWindow):
                                 substr(Дата, 4, 2) = ? AND substr(Дата, 7, 4) = ?
                                 GROUP BY Дата
                         )
-                        SELECT Выручка.Дата, Выручка.Выручка - IFNULL(Расход.Расход, 0) AS Прибыль
+                        SELECT Выручка.Дата, IFNULL(Выручка.Выручка, 0) - IFNULL(Расход.Расход, 0) AS Прибыль
                         FROM Выручка LEFT JOIN Расход ON Выручка.Дата = Расход.Дата
                     """)
 
@@ -603,7 +616,7 @@ class WindowFinance(QtWidgets.QMainWindow):
                                 substr(Дата, 4, 2) = ? AND substr(Дата, 7, 4) = ?
                                 GROUP BY Дата
                         )
-                        SELECT Выручка.Дата, Выручка.Выручка - IFNULL(Расход.Расход, 0) AS Прибыль
+                        SELECT Выручка.Дата, IFNULL(Выручка.Выручка, 0) - IFNULL(Расход.Расход, 0) AS Прибыль
                         FROM Выручка LEFT JOIN Расход ON Выручка.Дата = Расход.Дата
                     """)
                     query.addBindValue(year)
@@ -630,7 +643,7 @@ class WindowFinance(QtWidgets.QMainWindow):
         self.graph_widget.plot(x, y, symbol='o', pen=pg.mkPen(color=(153, 170, 210), width=3))
         self.graph_widget.setLabel('left', 'Значение', units='')
         self.graph_widget.setLabel('bottom', 'Дата', units='')
-        self.graph_widget.setTitle('График изменения значений')
+        self.graph_widget.setTitle('График изменения значений (перед тем, как вывести отчёт о прибыли необходимо вывести отчёты о выручке и расходах)')
 
     def plot_bar_chart(self, data):
         self.graph_widget.clear()

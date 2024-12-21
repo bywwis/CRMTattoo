@@ -187,5 +187,5 @@ class Ui_Finance(object):
         self.consumBtn.setText(_translate("MainWindow", "Расходные материалы"))
         self.priceBtn.setText(_translate("MainWindow", "Прайс-лист"))
         self.finanBtn.setText(_translate("MainWindow", "Финансы"))
-        self.reportBtn.setText(_translate("MainWindow", "Вывести отчёт"))
+        self.reportBtn.setText(_translate("MainWindow", "Сохранить отчёт"))
         self.expBtn.setText(_translate("MainWindow", "Расход материалов"))

@@ -228,7 +228,7 @@ background-color: #AAB1C1;
 }</string>
     </property>
     <property name="text">
-     <string>Вывести отчёт</string>
+     <string>Сохранить отчёт</string>
     </property>
    </widget>
    <widget class="QComboBox" name="period">
