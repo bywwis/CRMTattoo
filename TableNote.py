@@ -6,6 +6,7 @@ from design import Ui_MainWindow
 from dialogDelNote import Ui_DialogDelNote
 import sys
 import datetime
+import re
 
 class TableNote(QtCore.QAbstractTableModel):
     def __init__(self, db):
@@ -62,6 +63,10 @@ class TableNote(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.DisplayRole:
             return self.data_list[index.row()][index.column()]
 
+    def validate_format(self, value, pattern):
+        match = re.match(pattern, value)
+        return bool(match)
+
     def setData(self, index, value, role=QtCore.Qt.EditRole):
         if role == QtCore.Qt.EditRole:
             row = index.row()
@@ -75,60 +80,97 @@ class TableNote(QtCore.QAbstractTableModel):
 
             if col == 0:
                 try:
-                    query.prepare("UPDATE Клиенты SET Имя=? WHERE ID=?")
-                    query.addBindValue(value)
-                    query.addBindValue(self.get_client_id(row))
-                    if not query.exec_():
-                        print(f"Ошибка выполнения запроса на обновление имени: {query.lastError().text()}")
+                    if len(value) > 50:
+                        print("Введено слишком много символов! Пожалуйста, введите менее 50.")
+                        msg_box = QMessageBox()
+                        msg_box.setWindowTitle('Предупреждение')
+                        msg_box.setText('Введено слишком много символов!')
+                        msg_box.setInformativeText('Пожалуйста, введите менее 50.')
+                        msg_box.setIcon(QMessageBox.Icon.Warning)
+                        msg_box.exec()
+
+                        value = ''
+                        self.load_data()
+
+                    else:
+                        query.prepare("UPDATE Клиенты SET Имя=? WHERE ID=?")
+                        query.addBindValue(value)
+                        query.addBindValue(self.get_client_id(row))
+                        if not query.exec_():
+                            print(f"Ошибка выполнения запроса на обновление имени: {query.lastError().text()}")
                 except Exception as e:
                     print(e)
             elif col == 1:
                     try:
-                        query.prepare("UPDATE Клиенты SET Телефон=? WHERE ID=?")
-                        query.addBindValue(value)
-                        query.addBindValue(self.get_client_id(row))
+                        if len(value) > 12:
+                            print("Введено слишком много символов! Пожалуйста, введите менее 12.")
+                            msg_box = QMessageBox()
+                            msg_box.setWindowTitle('Предупреждение')
+                            msg_box.setText('Введено слишком много символов!')
+                            msg_box.setInformativeText('Пожалуйста, введите менее 50.')
+                            msg_box.setIcon(QMessageBox.Icon.Warning)
+                            msg_box.exec()
+
+                            value = ''
+                            self.load_data()
+
+                        else:
+                            query.prepare("UPDATE Клиенты SET Телефон=? WHERE ID=?")
+                            query.addBindValue(value)
+                            query.addBindValue(self.get_client_id(row))
+                            if not query.exec_():
+                                print(f"Ошибка выполнения запроса на обновление телефона: {query.lastError().text()}")
                     except Exception as e:
                         print(e)
             elif col == 2:
                 try:
-                    query.prepare("SELECT ID FROM Услуги WHERE Наименование=?")
+                    query.prepare("UPDATE Запись SET IDуслуги = (SELECT ID FROM Услуги WHERE Наименование = ?) WHERE ID = ?")
                     query.addBindValue(value)
+                    query.addBindValue(self.get_record_id(row))
                     if not query.exec_():
-                        print(f"Ошибка выполнения запроса на выборку услуги: {query.lastError().text()}")
-                        return False
-
-                    existing_service_id = None
-                    if query.next():
-                        existing_service_id = query.value(0)
-
-                    if existing_service_id is not None:
-                        query.prepare("UPDATE Запись SET IDуслуги=? WHERE ID=?")
-                        query.addBindValue(existing_service_id)
-                        query.addBindValue(self.get_record_id(row))
-                    else:
-                        query.prepare("UPDATE Услуги SET Наименование=? WHERE ID=?")
-                        query.addBindValue(value)
-                        query.addBindValue(self.get_service_id(row))
-
+                        print(f"Ошибка выполнения запроса на обновление услуги: {query.lastError().text()}")
                 except Exception as e:
                     print(e)
             elif col == 3:
                 try:
-                    query.prepare("UPDATE Запись SET Дата=? WHERE ID=?")
-                    query.addBindValue(value)
-                    query.addBindValue(self.get_record_id(row))
+                    if self.validate_format(value, r'\d{2}.\d{2}.\d{4}') == False or len(value) > 10 or int(value[0:2]) > 31 or int(value[3:5]) > 12:
+                        msg_box = QMessageBox()
+                        msg_box.setWindowTitle('Предупреждение')
+                        msg_box.setText('Введено некорректное значение!')
+                        msg_box.setInformativeText('Пожалуйста, введите дату в формате ДД.ММ.ГГГГ.')
+                        msg_box.setIcon(QMessageBox.Icon.Warning)
+                        msg_box.exec()
+                        value = ''
+                        self.load_data()
+
+                    else:
+                        query.prepare("UPDATE Запись SET Дата=? WHERE ID=?")
+                        query.addBindValue(value)
+                        query.addBindValue(self.get_record_id(row))
+                        if not query.exec_():
+                            print(f"Ошибка выполнения запроса на обновление даты: {query.lastError().text()}")
                 except Exception as e:
                     print(e)
             elif col == 4:
                 try:
-                    query.prepare("UPDATE Запись SET Время=? WHERE ID=?")
-                    query.addBindValue(value)
-                    query.addBindValue(self.get_record_id(row))
+                    if self.validate_format(value, r'\d{2}:\d{2}') == False or len(value) > 5 or int(value[0:2]) > 24 or int(value[3:5]) > 59:
+                        msg_box = QMessageBox()
+                        msg_box.setWindowTitle('Предупреждение')
+                        msg_box.setText('Введено некорректное значение!')
+                        msg_box.setInformativeText('Пожалуйста, введите время в формате ЧЧ:ММ.')
+                        msg_box.setIcon(QMessageBox.Icon.Warning)
+                        msg_box.exec()
+                        value = ''
+                        self.load_data()
+
+                    else:
+                        query.prepare("UPDATE Запись SET Время=? WHERE ID=?")
+                        query.addBindValue(value)
+                        query.addBindValue(self.get_record_id(row))
+                        if not query.exec_():
+                            print(f"Ошибка выполнения запроса на обновление времени: {query.lastError().text()}")
                 except Exception as e:
                     print(e)
-
-            if not query.exec_():
-                print(f"Ошибка выполнения запроса на обновление: {query.lastError().text()}")
 
             self.dataChanged.emit(index, index)
             return True
@@ -157,15 +199,10 @@ class TableNote(QtCore.QAbstractTableModel):
     def insert_row_note(self):
         queries = [
             'INSERT INTO Клиенты (Имя, Телефон) VALUES ("", "")',
-            'INSERT INTO Услуги (Наименование) VALUES ("")',
             'INSERT INTO Запись (IDклиента, IDуслуги, Дата, Время) '
             'VALUES ((SELECT MAX(ID) FROM Клиенты), '
             '(SELECT MAX(ID) FROM Услуги), "", "")'
         ]
-
-        client_id = None
-        service_id = None
-        record_id = None
 
         query = QSqlQuery(self.db)
 
@@ -174,15 +211,11 @@ class TableNote(QtCore.QAbstractTableModel):
             return
         client_id = query.lastInsertId()
         if not query.exec_(queries[1]):
-            print(f"Ошибка выполнения запроса на вставку услуги: {query.lastError().text()}")
-            return
-        service_id = query.lastInsertId()
-        if not query.exec_(queries[2]):
             print(f"Ошибка выполнения запроса на вставку записи: {query.lastError().text()}")
             return
         record_id = query.lastInsertId()
 
-        self.id_list.append([client_id, service_id, record_id])
+        self.id_list.append([client_id, None, record_id])
 
     def delete_row_note(self, row):
         id_row = self.get_record_id(row)

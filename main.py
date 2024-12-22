@@ -18,6 +18,7 @@ from TableClients import TableClients
 from TableConsum import TableConsum
 from TablePrice import TablePrice
 from TableExp import TableExp
+from TableFinance import TableFinance
 from DelNote import DelNote
 from DelClients import DelClients
 from DelConsum import DelConsum
@@ -27,6 +28,8 @@ from designeFinance import Ui_Finance
 import pyqtgraph as pg
 import numpy as np
 from pyqtgraph.exporters import Exporter
+import csv
+
 
 class MyWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -124,6 +127,8 @@ class MyWindow(QtWidgets.QMainWindow):
         header = self.ui.tableView.horizontalHeader()
         header.setStretchLastSection(True)
         header.setSectionResizeMode(QHeaderView.Stretch)
+
+        self.ui.tableView.setItemDelegateForColumn(2, ServiceDelegate(self.ui.tableView))
 
     def show_consum(self):
         self.ui.consumBtn.setStyleSheet("border: none; border-radius: 25px; background-color: #99AAD2;")
@@ -385,7 +390,7 @@ class WindowFinance(QtWidgets.QMainWindow):
 
         self.ui.calendar.selectionChanged.connect(self.update_date_label)
 
-        self.ui.reportBtn.clicked.connect(self.save_plot_to_file)
+        self.ui.reportBtn.clicked.connect(self.save_plot)
 
         self.db = QSqlDatabase.addDatabase('QSQLITE')
         self.db.setDatabaseName('database.db')
@@ -402,15 +407,48 @@ class WindowFinance(QtWidgets.QMainWindow):
 
         self.update_graph()
 
-    def save_plot_to_file(self):
-        file_name, _ = QFileDialog.getSaveFileName(self, "Сохранить график", "", "PNG (*.png);;PDF (*.pdf)")
+    def save_plot(self):
+        file_name, _ = QFileDialog.getSaveFileName(self, "Сохранить график", "график", "PNG (*.png);;PDF (*.pdf)")
         if file_name:
             exporter = pg.exporters.ImageExporter(self.graph_widget.plotItem)
             exporter.parameters()['width'] = 1020
             exporter.parameters()['height'] = 1080
             exporter.export(file_name)
+            QMessageBox.information(self, "Сохранение", "Данные графика успешно сохранены в файл " + file_name)
+            self.save_table()
+
+    def save_table(self):
+        file_name, _ = QFileDialog.getSaveFileName(
+            self,
+            "Сохранить таблицу",
+            "таблица",
+            "CSV (*.csv)"
+        )
+        if file_name:
+            model = self.ui.tableViewFinance.model()
+
+            row_count = model.rowCount()
+            column_count = model.columnCount()
+
+            with open(file_name, 'w', newline='') as file:
+                writer = csv.writer(file, delimiter=';')
+
+                headers = ["Дата", "Значение"]
+                writer.writerow(headers)
+
+                for row in range(row_count):
+                    data_row = []
+                    for col in range(column_count):
+                        index = model.index(row, col)
+                        value = index.data(QtCore.Qt.DisplayRole)
+                        data_row.append(str(value))
+
+                    writer.writerow(data_row)
+
+            QMessageBox.information(self, "Сохранение", f"Таблица успешно сохранена в файл {file_name}")
 
     def update_graph(self):
+        self.graph_widget.clear()
         period = self.ui.period.currentText()
         type_ = self.ui.type.currentText()
         display_type = self.ui.displayType.currentText()
@@ -438,6 +476,15 @@ class WindowFinance(QtWidgets.QMainWindow):
             self.plot_bar_chart(data)
         elif display_type == "Гистограмма":
             self.plot_histogram(data)
+
+        self.model = TableFinance()
+        self.ui.tableViewFinance.setModel(self.model)
+        self.model.setData(data)
+
+        header = self.ui.tableViewFinance.horizontalHeader()
+        header.setStretchLastSection(True)
+        header.setSectionResizeMode(QHeaderView.Stretch)
+        self.ui.tableViewFinance.verticalHeader().setVisible(False)
 
     def get_data(self, type_, start_date, end_date, period):
         try:
@@ -575,7 +622,7 @@ class WindowFinance(QtWidgets.QMainWindow):
                             FROM (
                                 SELECT IDуслуги, COUNT(ID) AS КоличествоЗаписей, Дата
                                 FROM Запись
-                                substr(Дата, 4, 2) = ? AND substr(Дата, 7, 4) = ?
+                                WHERE substr(Дата, 4, 2) = ? AND substr(Дата, 7, 4) = ?
                                 GROUP BY IDуслуги, Дата)
                             AS ЗаписиПоУслугам
                             JOIN Услуги ON ЗаписиПоУслугам.IDуслуги = Услуги.ID
@@ -585,12 +632,15 @@ class WindowFinance(QtWidgets.QMainWindow):
                                 FROM Запись 
                                 JOIN УслугиРасходныеМатериалы ON Запись.IDуслуги = УслугиРасходныеМатериалы.IDУслуги
                                 JOIN РасходныеМатериалы ON УслугиРасходныеМатериалы.IDМатериалов = РасходныеМатериалы.ID
-                                substr(Дата, 4, 2) = ? AND substr(Дата, 7, 4) = ?
+                                WHERE substr(Дата, 4, 2) = ? AND substr(Дата, 7, 4) = ?
                                 GROUP BY Дата
                         )
                         SELECT Выручка.Дата, IFNULL(Выручка.Выручка, 0) - IFNULL(Расход.Расход, 0) AS Прибыль
                         FROM Выручка LEFT JOIN Расход ON Выручка.Дата = Расход.Дата
                     """)
+
+                    query.addBindValue(month)
+                    query.addBindValue(year)
 
                     query.addBindValue(month)
                     query.addBindValue(year)
@@ -603,7 +653,7 @@ class WindowFinance(QtWidgets.QMainWindow):
                             FROM (
                                 SELECT IDуслуги, COUNT(ID) AS КоличествоЗаписей, Дата
                                 FROM Запись
-                                substr(Дата, 4, 2) = ? AND substr(Дата, 7, 4) = ?
+                                WHERE substr(Дата, 4, 2) = ? AND substr(Дата, 7, 4) = ?
                                 GROUP BY IDуслуги, Дата)
                             AS ЗаписиПоУслугам
                             JOIN Услуги ON ЗаписиПоУслугам.IDуслуги = Услуги.ID
@@ -613,14 +663,16 @@ class WindowFinance(QtWidgets.QMainWindow):
                                 FROM Запись 
                                 JOIN УслугиРасходныеМатериалы ON Запись.IDуслуги = УслугиРасходныеМатериалы.IDУслуги
                                 JOIN РасходныеМатериалы ON УслугиРасходныеМатериалы.IDМатериалов = РасходныеМатериалы.ID
-                                substr(Дата, 4, 2) = ? AND substr(Дата, 7, 4) = ?
+                                WHERE substr(Дата, 4, 2) = ? AND substr(Дата, 7, 4) = ?
                                 GROUP BY Дата
                         )
                         SELECT Выручка.Дата, IFNULL(Выручка.Выручка, 0) - IFNULL(Расход.Расход, 0) AS Прибыль
                         FROM Выручка LEFT JOIN Расход ON Выручка.Дата = Расход.Дата
                     """)
                     query.addBindValue(year)
-
+                    query.addBindValue(year)
+                    query.addBindValue(year)
+                    query.addBindValue(year)
 
             if not query.exec_():
                 print("Ошибка выполнения запроса на получение данных:", query.lastError().text())
@@ -633,6 +685,7 @@ class WindowFinance(QtWidgets.QMainWindow):
                 values.append(query.value(1))
 
             return {"dates": dates, "values": values}
+
         except Exception as e:
             print("Ошибка получения данных для графиков: ", e)
 
@@ -643,7 +696,7 @@ class WindowFinance(QtWidgets.QMainWindow):
         self.graph_widget.plot(x, y, symbol='o', pen=pg.mkPen(color=(153, 170, 210), width=3))
         self.graph_widget.setLabel('left', 'Значение', units='')
         self.graph_widget.setLabel('bottom', 'Дата', units='')
-        self.graph_widget.setTitle('График изменения значений (перед тем, как вывести отчёт о прибыли необходимо вывести отчёты о выручке и расходах)')
+        self.graph_widget.setTitle('График изменения значений')
 
     def plot_bar_chart(self, data):
         self.graph_widget.clear()

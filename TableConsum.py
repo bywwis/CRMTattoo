@@ -139,8 +139,7 @@ class TableConsum(QtCore.QAbstractTableModel):
     def delete_row_consum(self, row):
         id_row = self.get_consum_id(row)
         query = QSqlQuery(self.db)
-        query.prepare(
-            f"""DELETE FROM РасходныеМатериалы WHERE ID = {id_row}""")
+        query.prepare(f"""DELETE FROM РасходныеМатериалы WHERE ID = {id_row}""")
         if not query.exec_():
             QMessageBox.warning(self, "Ошибка", "Не удалось удалить строку в таблице РасходныеМатериалы.")
         self.load_data()

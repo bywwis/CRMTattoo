@@ -69,37 +69,89 @@ class TableClients(QtCore.QAbstractTableModel):
 
             if col == 0:
                 try:
-                    query.prepare("UPDATE Клиенты SET Фамилия=? WHERE ID=?")
-                    query.addBindValue(value)
-                    query.addBindValue(self.get_client_id(row))
-                    if not query.exec_():
-                        print(f"Ошибка выполнения запроса на обновление имени: {query.lastError().text()}")
+                    if len(value) > 50:
+                        print("Введено слишком много символов! Пожалуйста, введите менее 50.")
+                        msg_box = QMessageBox()
+                        msg_box.setWindowTitle('Предупреждение')
+                        msg_box.setText('Введено слишком много символов!')
+                        msg_box.setInformativeText('Пожалуйста, введите менее 50.')
+                        msg_box.setIcon(QMessageBox.Icon.Warning)
+                        msg_box.exec()
+
+                        value = ''
+                        self.load_data()
+                    else:
+                        query.prepare("UPDATE Клиенты SET Фамилия=? WHERE ID=?")
+                        query.addBindValue(value)
+                        query.addBindValue(self.get_client_id(row))
+                        if not query.exec_():
+                            print(f"Ошибка выполнения запроса на обновление фамилии: {query.lastError().text()}")
                 except Exception as e:
                     print(e)
             elif col == 1:
                 try:
-                    query.prepare("UPDATE Клиенты SET Имя=? WHERE ID=?")
-                    query.addBindValue(value)
-                    query.addBindValue(self.get_client_id(row))
+                    if len(value) > 50:
+                        print("Введено слишком много символов! Пожалуйста, введите менее 50.")
+                        msg_box = QMessageBox()
+                        msg_box.setWindowTitle('Предупреждение')
+                        msg_box.setText('Введено слишком много символов!')
+                        msg_box.setInformativeText('Пожалуйста, введите менее 50.')
+                        msg_box.setIcon(QMessageBox.Icon.Warning)
+                        msg_box.exec()
+
+                        value = ''
+                        self.load_data()
+                    else:
+                        query.prepare("UPDATE Клиенты SET Имя=? WHERE ID=?")
+                        query.addBindValue(value)
+                        query.addBindValue(self.get_client_id(row))
+                        if not query.exec_():
+                            print(f"Ошибка выполнения запроса на обновление имени: {query.lastError().text()}")
                 except Exception as e:
                     print(e)
             elif col == 2:
                 try:
-                    query.prepare("UPDATE Клиенты SET Отчество=? WHERE ID=?")
-                    query.addBindValue(value)
-                    query.addBindValue(self.get_client_id(row))
+                    if len(value) > 50:
+                        print("Введено слишком много символов! Пожалуйста, введите менее 50.")
+                        msg_box = QMessageBox()
+                        msg_box.setWindowTitle('Предупреждение')
+                        msg_box.setText('Введено слишком много символов!')
+                        msg_box.setInformativeText('Пожалуйста, введите менее 50.')
+                        msg_box.setIcon(QMessageBox.Icon.Warning)
+                        msg_box.exec()
+
+                        value = ''
+                        self.load_data()
+                    else:
+                        query.prepare("UPDATE Клиенты SET Отчество=? WHERE ID=?")
+                        query.addBindValue(value)
+                        query.addBindValue(self.get_client_id(row))
+                        if not query.exec_():
+                            print(f"Ошибка выполнения запроса на обновление отчества: {query.lastError().text()}")
                 except Exception as e:
                     print(e)
             elif col == 3:
                 try:
-                    query.prepare("UPDATE Клиенты SET Телефон=? WHERE ID=?")
-                    query.addBindValue(value)
-                    query.addBindValue(self.get_client_id(row))
+                    if len(value) > 12:
+                        print("Введено слишком много символов! Пожалуйста, введите менее 12.")
+                        msg_box = QMessageBox()
+                        msg_box.setWindowTitle('Предупреждение')
+                        msg_box.setText('Введено слишком много символов!')
+                        msg_box.setInformativeText('Пожалуйста, введите менее 50.')
+                        msg_box.setIcon(QMessageBox.Icon.Warning)
+                        msg_box.exec()
+
+                        value = ''
+                        self.load_data()
+                    else:
+                        query.prepare("UPDATE Клиенты SET Телефон=? WHERE ID=?")
+                        query.addBindValue(value)
+                        query.addBindValue(self.get_client_id(row))
+                        if not query.exec_():
+                            print(f"Ошибка выполнения запроса на обновление телефона: {query.lastError().text()}")
+
                 except Exception as e:
                     print(e)
-
-            if not query.exec_():
-                print(f"Ошибка выполнения запроса на обновление: {query.lastError().text()}")
 
             self.dataChanged.emit(index, index)
             return True

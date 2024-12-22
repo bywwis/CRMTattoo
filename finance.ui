@@ -344,11 +344,60 @@ background-color: #99AAD2;
      <rect>
       <x>460</x>
       <y>160</y>
-      <width>1411</width>
+      <width>981</width>
       <height>851</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout"/>
+   </widget>
+   <widget class="QTableView" name="tableViewFinance">
+    <property name="geometry">
+     <rect>
+      <x>1470</x>
+      <y>160</y>
+      <width>391</width>
+      <height>851</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QTableView {
+  border:none;
+  border-top:2px solid #99AAD2; 
+  border-radius: 5px;
+  gridline-color: #99AAD2; 
+  border-left: 2px solid #99AAD2; 
+  border-right: 2px solid #99AAD2; 
+  border-bottom:2px solid #99AAD2; 
+  color: rgb(0, 0, 0);  
+  font: 12pt &quot;News Cycle&quot;;
+  }
+
+QTableView::item {
+    border-bottom:1px solid #99AAD2; 
+    border-left: 0.5px solid #99AAD2; 
+}
+ 
+QTableView::item:selected {
+  background-color: #AAB1C1;
+ }
+
+QHeaderView::section {
+  border: none;
+  border-bottom: 2px solid #99AAD2; 
+  background-color: #bcc7e0; 
+  border-left: 0.5px solid #99AAD2; 
+  border-right: 0.5px solid #99AAD2;
+  color: rgb(0, 0, 0);
+  font: 14pt &quot;News Cycle&quot;;
+  padding: 3px;
+}
+
+QHeaderView::down-arrow {
+  width: 26px; 
+  height:18px; 
+  subcontrol-position: bottom right; 
+}</string>
+    </property>
    </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>

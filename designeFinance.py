@@ -165,11 +165,51 @@ class Ui_Finance(object):
         self.displayType.setFont(font)
         self.displayType.setObjectName("displayType")
         self.gridLayoutWidget = QtWidgets.QWidget(self.centralwidget)
-        self.gridLayoutWidget.setGeometry(QtCore.QRect(460, 160, 1411, 851))
+        self.gridLayoutWidget.setGeometry(QtCore.QRect(460, 160, 981, 851))
         self.gridLayoutWidget.setObjectName("gridLayoutWidget")
         self.gridLayout = QtWidgets.QGridLayout(self.gridLayoutWidget)
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
         self.gridLayout.setObjectName("gridLayout")
+        self.tableViewFinance = QtWidgets.QTableView(self.centralwidget)
+        self.tableViewFinance.setGeometry(QtCore.QRect(1470, 160, 391, 851))
+        self.tableViewFinance.setStyleSheet("QTableView {\n"
+"  border:none;\n"
+"  border-top:2px solid #99AAD2; \n"
+"  border-radius: 5px;\n"
+"  gridline-color: #99AAD2; \n"
+"  border-left: 2px solid #99AAD2; \n"
+"  border-right: 2px solid #99AAD2; \n"
+"  border-bottom:2px solid #99AAD2; \n"
+"  color: rgb(0, 0, 0);  \n"
+"  font: 12pt \"News Cycle\";\n"
+"  }\n"
+"\n"
+"QTableView::item {\n"
+"    border-bottom:1px solid #99AAD2; \n"
+"    border-left: 0.5px solid #99AAD2; \n"
+"}\n"
+" \n"
+"QTableView::item:selected {\n"
+"  background-color: #AAB1C1;\n"
+" }\n"
+"\n"
+"QHeaderView::section {\n"
+"  border: none;\n"
+"  border-bottom: 2px solid #99AAD2; \n"
+"  background-color: #bcc7e0; \n"
+"  border-left: 0.5px solid #99AAD2; \n"
+"  border-right: 0.5px solid #99AAD2;\n"
+"  color: rgb(0, 0, 0);\n"
+"  font: 14pt \"News Cycle\";\n"
+"  padding: 3px;\n"
+"}\n"
+"\n"
+"QHeaderView::down-arrow {\n"
+"  width: 26px; \n"
+"  height:18px; \n"
+"  subcontrol-position: bottom right; \n"
+"}")
+        self.tableViewFinance.setObjectName("tableViewFinance")
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
