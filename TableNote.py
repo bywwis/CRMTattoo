@@ -107,7 +107,7 @@ class TableNote(QtCore.QAbstractTableModel):
                             msg_box = QMessageBox()
                             msg_box.setWindowTitle('Предупреждение')
                             msg_box.setText('Введено слишком много символов!')
-                            msg_box.setInformativeText('Пожалуйста, введите менее 50.')
+                            msg_box.setInformativeText('Пожалуйста, введите менее 12.')
                             msg_box.setIcon(QMessageBox.Icon.Warning)
                             msg_box.exec()
 

@@ -70,6 +70,7 @@ class MyWindow(QtWidgets.QMainWindow):
         header.setStretchLastSection(True)
         header.setSectionResizeMode(QHeaderView.Stretch)
 
+
         self.ui.tableView.setItemDelegateForColumn(2, ServiceDelegate(self.ui.tableView))
 
         date_today = datetime.date.today()
@@ -103,6 +104,10 @@ class MyWindow(QtWidgets.QMainWindow):
         header.setStretchLastSection(True)
         header.setSectionResizeMode(QHeaderView.Stretch)
 
+        self.ui.tableView.setItemDelegateForColumn(2, None)
+        self.ui.tableView.setItemDelegateForColumn(0, None)
+        self.ui.tableView.setItemDelegateForColumn(1, None)
+
     def show_notes(self):
         self.ui.recordsBtn.setStyleSheet("border: none; border-radius: 25px; background-color: #99AAD2;")
         self.ui.clientBtn.setStyleSheet(
@@ -129,6 +134,8 @@ class MyWindow(QtWidgets.QMainWindow):
         header.setSectionResizeMode(QHeaderView.Stretch)
 
         self.ui.tableView.setItemDelegateForColumn(2, ServiceDelegate(self.ui.tableView))
+        self.ui.tableView.setItemDelegateForColumn(0, None)
+        self.ui.tableView.setItemDelegateForColumn(1, None)
 
     def show_consum(self):
         self.ui.consumBtn.setStyleSheet("border: none; border-radius: 25px; background-color: #99AAD2;")
@@ -155,6 +162,10 @@ class MyWindow(QtWidgets.QMainWindow):
         header.setStretchLastSection(True)
         header.setSectionResizeMode(QHeaderView.Stretch)
 
+        self.ui.tableView.setItemDelegateForColumn(2, None)
+        self.ui.tableView.setItemDelegateForColumn(0, None)
+        self.ui.tableView.setItemDelegateForColumn(1, None)
+
     def show_price(self):
         self.ui.priceBtn.setStyleSheet("border: none; border-radius: 25px; background-color: #99AAD2;")
         self.ui.clientBtn.setStyleSheet(
@@ -179,6 +190,10 @@ class MyWindow(QtWidgets.QMainWindow):
         header = self.ui.tableView.horizontalHeader()
         header.setStretchLastSection(True)
         header.setSectionResizeMode(QHeaderView.Stretch)
+
+        self.ui.tableView.setItemDelegateForColumn(2, None)
+        self.ui.tableView.setItemDelegateForColumn(0, None)
+        self.ui.tableView.setItemDelegateForColumn(1, None)
 
     def show_exp(self):
         self.ui.expBtn.setStyleSheet("border: none; border-radius: 25px; background-color: #99AAD2;")
@@ -207,6 +222,8 @@ class MyWindow(QtWidgets.QMainWindow):
 
         self.ui.tableView.setItemDelegateForColumn(0, ServiceDelegate(self.ui.tableView))
         self.ui.tableView.setItemDelegateForColumn(1, MaterialDelegate(self.ui.tableView))
+
+        self.ui.tableView.setItemDelegateForColumn(2, None)
 
     def show_finance(self):
         try:

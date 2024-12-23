@@ -1,4 +1,6 @@
 from logging import disable
+from xml.sax.saxutils import escape
+
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import *
 from PyQt5.QtSql import QSqlDatabase, QSqlQuery, QSqlTableModel, QSqlQueryModel
@@ -69,32 +71,89 @@ class TableConsum(QtCore.QAbstractTableModel):
 
             if col == 0:
                 try:
-                    query.prepare("UPDATE РасходныеМатериалы SET Наименование=? WHERE ID=?")
-                    query.addBindValue(value)
-                    query.addBindValue(self.get_consum_id(row))
-                    if not query.exec_():
-                        print(f"Ошибка выполнения запроса на обновление имени: {query.lastError().text()}")
+                    if len(value) > 50:
+                        print("Введено слишком много символов! Пожалуйста, введите менее 50.")
+                        msg_box = QMessageBox()
+                        msg_box.setWindowTitle('Предупреждение')
+                        msg_box.setText('Введено слишком много символов!')
+                        msg_box.setInformativeText('Пожалуйста, введите менее 50.')
+                        msg_box.setIcon(QMessageBox.Icon.Warning)
+                        msg_box.exec()
+
+                        value = ''
+                        self.load_data()
+                    else:
+                        query.prepare("UPDATE РасходныеМатериалы SET Наименование=? WHERE ID=?")
+                        query.addBindValue(value)
+                        query.addBindValue(self.get_consum_id(row))
+                        if not query.exec_():
+                            print(f"Ошибка выполнения запроса на обновление имени: {query.lastError().text()}")
                 except Exception as e:
                     print(e)
             elif col == 1:
                 try:
-                    query.prepare("UPDATE РасходныеМатериалы SET СтоимостьШтуки=? WHERE ID=?")
-                    query.addBindValue(value)
-                    query.addBindValue(self.get_consum_id(row))
+                    if len(value) > 10:
+                        print("Введено слишком много символов! Пожалуйста, введите менее 10.")
+                        msg_box = QMessageBox()
+                        msg_box.setWindowTitle('Предупреждение')
+                        msg_box.setText('Введено слишком много символов!')
+                        msg_box.setInformativeText('Пожалуйста, введите менее 10.')
+                        msg_box.setIcon(QMessageBox.Icon.Warning)
+                        msg_box.exec()
+
+                        value = ''
+                        self.load_data()
+                    else:
+                        query.prepare("UPDATE РасходныеМатериалы SET СтоимостьШтуки=? WHERE ID=?")
+                        query.addBindValue(value)
+                        query.addBindValue(self.get_consum_id(row))
+
+                        if not query.exec_():
+                            print(f"Ошибка выполнения запроса на обновление: {query.lastError().text()}")
                 except Exception as e:
                     print(e)
             elif col == 2:
                 try:
-                    query.prepare("UPDATE РасходныеМатериалы SET КоличествоВНаличии=? WHERE ID=?")
-                    query.addBindValue(value)
-                    query.addBindValue(self.get_consum_id(row))
+                    if len(value) > 10:
+                        print("Введено слишком много символов! Пожалуйста, введите менее 10.")
+                        msg_box = QMessageBox()
+                        msg_box.setWindowTitle('Предупреждение')
+                        msg_box.setText('Введено слишком много символов!')
+                        msg_box.setInformativeText('Пожалуйста, введите менее 10.')
+                        msg_box.setIcon(QMessageBox.Icon.Warning)
+                        msg_box.exec()
+
+                        value = ''
+                        self.load_data()
+                    else:
+                        query.prepare("UPDATE РасходныеМатериалы SET КоличествоВНаличии=? WHERE ID=?")
+                        query.addBindValue(value)
+                        query.addBindValue(self.get_consum_id(row))
+
+                        if not query.exec_():
+                            print(f"Ошибка выполнения запроса на обновление: {query.lastError().text()}")
                 except Exception as e:
                     print(e)
             elif col == 3:
                 try:
-                    query.prepare("UPDATE РасходныеМатериалы SET ЕдиницыИзмерения=? WHERE ID=?")
-                    query.addBindValue(value)
-                    query.addBindValue(self.get_consum_id(row))
+                    if len(value) > 10:
+                        print("Введено слишком много символов! Пожалуйста, введите менее 10.")
+                        msg_box = QMessageBox()
+                        msg_box.setWindowTitle('Предупреждение')
+                        msg_box.setText('Введено слишком много символов!')
+                        msg_box.setInformativeText('Пожалуйста, введите менее 10.')
+                        msg_box.setIcon(QMessageBox.Icon.Warning)
+                        msg_box.exec()
+
+                        value = ''
+                        self.load_data()
+                    else:
+                        query.prepare("UPDATE РасходныеМатериалы SET ЕдиницыИзмерения=? WHERE ID=?")
+                        query.addBindValue(value)
+                        query.addBindValue(self.get_consum_id(row))
+
+                        if not query.exec_():
+                            print(f"Ошибка выполнения запроса на обновление: {query.lastError().text()}")
                 except Exception as e:
                     print(e)
 

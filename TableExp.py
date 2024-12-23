@@ -82,16 +82,45 @@ class TableExp(QtCore.QAbstractTableModel):
                 query.addBindValue(self.get_exp_id(row))
             elif col == 2:
                 try:
-                    query.prepare("UPDATE УслугиРасходныеМатериалы SET РасходМатериалаНаУслугу=? WHERE ID=?")
-                    query.addBindValue(value)
-                    query.addBindValue(self.get_exp_id(row))
+                    if len(value) > 10:
+                        print("Введено слишком много символов! Пожалуйста, введите менее 10.")
+                        msg_box = QMessageBox()
+                        msg_box.setWindowTitle('Предупреждение')
+                        msg_box.setText('Введено слишком много символов!')
+                        msg_box.setInformativeText('Пожалуйста, введите менее 10.')
+                        msg_box.setIcon(QMessageBox.Icon.Warning)
+                        msg_box.exec()
+
+                        value = ''
+                        self.load_data()
+                    else:
+                        query.prepare("UPDATE УслугиРасходныеМатериалы SET РасходМатериалаНаУслугу=? WHERE ID=?")
+                        query.addBindValue(value)
+                        query.addBindValue(self.get_exp_id(row))
+                        if not query.exec_():
+                            print(f"Ошибка выполнения запроса на обновление: {query.lastError().text()}")
                 except Exception as e:
                     print(e)
             elif col == 3:
                 try:
-                    query.prepare("UPDATE УслугиРасходныеМатериалы SET ЕдиницыИзмерения=? WHERE ID=?")
-                    query.addBindValue(value)
-                    query.addBindValue(self.get_exp_id(row))
+                    if len(value) > 10:
+                        print("Введено слишком много символов! Пожалуйста, введите менее 10.")
+                        msg_box = QMessageBox()
+                        msg_box.setWindowTitle('Предупреждение')
+                        msg_box.setText('Введено слишком много символов!')
+                        msg_box.setInformativeText('Пожалуйста, введите менее 10.')
+                        msg_box.setIcon(QMessageBox.Icon.Warning)
+                        msg_box.exec()
+
+                        value = ''
+                        self.load_data()
+                    else:
+                        query.prepare("UPDATE УслугиРасходныеМатериалы SET ЕдиницыИзмерения=? WHERE ID=?")
+                        query.addBindValue(value)
+                        query.addBindValue(self.get_exp_id(row))
+                        if not query.exec_():
+                            print(f"Ошибка выполнения запроса на обновление: {query.lastError().text()}")
+
                 except Exception as e:
                     print(e)
 

@@ -70,14 +70,28 @@ class TablePrice(QtCore.QAbstractTableModel):
                     query.addBindValue(value)
                     query.addBindValue(self.get_price_id(row))
                     if not query.exec_():
-                        print(f"Ошибка выполнения запроса на обновление имени: {query.lastError().text()}")
+                        print(f"Ошибка выполнения запроса на обновление услуги: {query.lastError().text()}")
                 except Exception as e:
                     print(e)
             elif col == 1:
                 try:
-                    query.prepare("UPDATE Услуги SET Цена=? WHERE ID=?")
-                    query.addBindValue(value)
-                    query.addBindValue(self.get_price_id(row))
+                    if len(value) > 10:
+                        print("Введено слишком много символов! Пожалуйста, введите менее 10.")
+                        msg_box = QMessageBox()
+                        msg_box.setWindowTitle('Предупреждение')
+                        msg_box.setText('Введено слишком много символов!')
+                        msg_box.setInformativeText('Пожалуйста, введите менее 10.')
+                        msg_box.setIcon(QMessageBox.Icon.Warning)
+                        msg_box.exec()
+
+                        value = ''
+                        self.load_data()
+                    else:
+                        query.prepare("UPDATE Услуги SET Цена=? WHERE ID=?")
+                        query.addBindValue(value)
+                        query.addBindValue(self.get_price_id(row))
+                        if not query.exec_():
+                            print(f"Ошибка выполнения запроса на обновление цены: {query.lastError().text()}")
                 except Exception as e:
                     print(e)
 
